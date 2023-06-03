@@ -16,31 +16,21 @@ internal class JobContext<TData> : IJobContext<TData> where TData : IJobData
 
     public Guid CreateJob()
     {
-        var id = Guid.NewGuid();
-        _jobContext.Tell(new DoJobCommand
-        {
-            JobId = id,
-            GroupType = typeof(TData)
-        });
-        return id;
+        var jobId = Guid.NewGuid();
+        _jobContext.Tell(new DoJobCommand(jobId, typeof(TData)));
+        return jobId;
     }
 
     public async Task<JobCommandResult> DoJobAsync()
     {
-        var id = Guid.NewGuid();
-        return await _jobContext.Ask<JobCommandResult>(new DoJobCommand
-        {
-            JobId = id,
-            GroupType = typeof(TData)
-        });
+        var jobId = Guid.NewGuid();
+        return await _jobContext.Ask<JobCommandResult>(
+            new DoJobCommand(jobId, typeof(TData)));
     }
 
-    public Task<StopJobCommandResult> StopJobAsync(Guid jobId)
+    public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
     {
-        throw new NotImplementedException();
-        // return await _jobContext.Ask<StopJobCommandResult>(new StopJobCommand()
-        // {
-        //     JobId = jobId,
-        // });
+        return await _jobContext.Ask<StopJobCommandResult>(
+            new StopJobCommand(jobId, typeof(TData)));
     }
 }

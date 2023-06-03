@@ -1,11 +1,8 @@
-﻿using Job.Core.Models.Enums;
-
-namespace Job.Core.Interfaces;
+﻿namespace Job.Core.Interfaces;
 
 public interface IJob<out TData> where TData : IJobData
 {
-    bool DoJob();
-    bool StopJob(Guid jobId);
+    Task<bool> DoJobAsync(CancellationToken token);
     TData GetCurrentState(Guid jobId);
 }
 

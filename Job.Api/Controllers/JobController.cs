@@ -47,13 +47,12 @@ public class JobController : ControllerBase
 
 public class ForEachJob : IJob<TestJob>
 {
-    private bool _stopped;
     private int _currentState;
-    public bool DoJob()
+    public async Task<bool> DoJobAsync(CancellationToken token)
     {
-        foreach (var item in Enumerable.Range(0, 10))
+        foreach (var item in Enumerable.Range(0, 100))
         {
-            if (_stopped)
+            if (token.IsCancellationRequested)
                 return false;
             _currentState = item;
             Console.WriteLine($"Job {item}");
@@ -63,11 +62,6 @@ public class ForEachJob : IJob<TestJob>
         return true;
     }
 
-    public bool StopJob(Guid jobId)
-    {
-        throw new NotImplementedException();
-    }
-
     public TestJob GetCurrentState(Guid jobId)
     {
         return new TestJob
@@ -75,12 +69,6 @@ public class ForEachJob : IJob<TestJob>
             Id = jobId,
             Data = _currentState
         };
-    }
-
-    public bool StopJob()
-    {
-        _stopped = true;
-        return true;
     }
 
 }

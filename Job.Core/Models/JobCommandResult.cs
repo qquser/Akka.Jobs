@@ -2,7 +2,7 @@
 
 public sealed class JobCommandResult
 {
-    public JobCommandResult(bool success, string result)
+    public JobCommandResult(bool success, string result, Guid jobId)
     {
         Success = success;
         Result = result;

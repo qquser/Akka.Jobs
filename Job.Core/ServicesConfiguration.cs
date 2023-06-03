@@ -22,6 +22,6 @@ public static class ServicesConfiguration
             var actorSystem = provider.GetService<ActorSystem>();
             return actorSystem.ActorOf(Props.Create<MasterActor>());
         });
-        services.AddScoped(typeof(IJobContext<>), typeof(JobContext<>));
+        services.AddSingleton(typeof(IJobContext<>), typeof(JobContext<>));
     }
 }

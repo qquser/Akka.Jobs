@@ -13,19 +13,22 @@ internal class MasterActor : ReceiveActor
     public MasterActor()
     {
         Receive<DoJobCommand>(StartJobCommandHandler);
-        //Receive<StopJobCommand>(StopJobCommandHandler);
+        Receive<StopJobCommand>(StopJobCommandHandler);
         
         Receive<Terminated>(GroupActorTerminatedHandler);
     }
-    
-    protected override SupervisorStrategy SupervisorStrategy()
+
+    private void StopJobCommandHandler(StopJobCommand command)
     {
-        return new OneForOneStrategy(
-            maxNrOfRetries: -1,
-            withinTimeRange: TimeSpan.FromMilliseconds(-1),
-            localOnlyDecider: ex => Directive.Stop);
+        if (!_groupIdToActor.ContainsKey(command.GroupType))
+        {
+            Sender.Tell(new StopJobCommandResult(false, $"_groupIdToActor does not contain {command.GroupType}"));
+            return;
+        }
+
+        _groupIdToActor[command.GroupType].Forward(command);
     }
-    
+
     private void GroupActorTerminatedHandler(Terminated t)
     {
         var groupId = _actorToGroupId[t.ActorRef];
@@ -42,7 +45,8 @@ internal class MasterActor : ReceiveActor
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
-                Sender.Tell(new JobCommandResult(false, "IsTerminated == true. Group Actor has been terminated."));
+                Sender.Tell(new JobCommandResult(false, 
+                    "IsTerminated == true. Group Actor has been terminated.", command.JobId));
                 return;
             }
 
@@ -57,5 +61,11 @@ internal class MasterActor : ReceiveActor
         _actorToGroupId.Add(groupActor, command.GroupType);
     }
     
-    public static Props Props() => Akka.Actor.Props.Create<MasterActor>();
+    protected override SupervisorStrategy SupervisorStrategy()
+    {
+        return new OneForOneStrategy(
+            maxNrOfRetries: -1,
+            withinTimeRange: TimeSpan.FromMilliseconds(-1),
+            localOnlyDecider: ex => Directive.Stop);
+    }
 }

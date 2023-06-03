@@ -1,22 +1,18 @@
-using Job.Api.App;
+using Job.Api.Controllers;
 using Job.Core;
+using Job.Core.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.ConfigureServices();
-
+//Job library registration
+builder.Services.AddScoped<IJob<TestJob>, ForEachJob>();
 builder.Services.ConfigureJobServices();
 
-var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
