@@ -6,20 +6,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Job.Core.Theater.Workers;
 
-internal class WorkerActor : ReceiveActor
+internal class WorkerActor<TData> : ReceiveActor 
+    where TData : IJobData
 {
-    private readonly Guid _actorId;
-    private readonly string _groupId;
+
+    private Guid _actorId;
+    private Type _groupId;
     
     private readonly IServiceScope _scope;
     
-    private IJob _job;
-
-    public WorkerActor(IServiceProvider serviceProvider, string groupId, Guid actorId)
+    private IJob<TData> _job;
+    
+    public WorkerActor(IServiceProvider serviceProvider)
     {
-        _actorId = actorId;
-        _groupId = groupId;
-
         _scope = serviceProvider.CreateScope();
         
         Receive<DoJobCommand>(DoJobCommandHandler);
@@ -27,15 +26,17 @@ internal class WorkerActor : ReceiveActor
         //Receive<Terminated>(DownloadActorSlaveTerminatedHandler);
     }
 
-    private void DoJobCommandHandler(DoJobCommand obj)
+    private void DoJobCommandHandler(DoJobCommand command)
     {
-        _job.StartJob();
+        _actorId = command.JobId;
+        _groupId = command.GroupType;
+        _job.DoJob();
         Sender.Tell(new JobCommandResult(true, "Ok"));
     }
     
     protected override void PreStart()
     {
-        _job = _scope.ServiceProvider.GetService<IJob>();
+        _job = _scope.ServiceProvider.GetService<IJob<TData>>();
     }
     protected override void PostStop()
     {

@@ -7,8 +7,8 @@ namespace Job.Core.Theater.Master;
 
 internal class MasterActor : ReceiveActor
 {
-    private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
-    private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
+    private readonly Dictionary<Type, IActorRef> _groupIdToActor = new();
+    private readonly Dictionary<IActorRef, Type> _actorToGroupId = new();
     
     public MasterActor()
     {
@@ -38,7 +38,7 @@ internal class MasterActor : ReceiveActor
     
     private void StartJobCommandHandler(DoJobCommand command)
     {
-        if (_groupIdToActor.TryGetValue(command.GroupId, out var actorRef))
+        if (_groupIdToActor.TryGetValue(command.GroupType, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
@@ -50,11 +50,11 @@ internal class MasterActor : ReceiveActor
             return;
         }
         
-        var groupActor = Context.ActorOf(GroupActor.Props(command.GroupId), $"group-{command.GroupId}");
+        var groupActor = Context.ActorOf(GroupActor.Props(command.GroupType), $"group-{command.GroupType}");
         Context.Watch(groupActor);
         groupActor.Forward(command);
-        _groupIdToActor.Add(command.GroupId, groupActor);
-        _actorToGroupId.Add(groupActor, command.GroupId);
+        _groupIdToActor.Add(command.GroupType, groupActor);
+        _actorToGroupId.Add(groupActor, command.GroupType);
     }
     
     public static Props Props() => Akka.Actor.Props.Create<MasterActor>();

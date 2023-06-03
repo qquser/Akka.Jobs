@@ -2,11 +2,11 @@
 
 namespace Job.Core.Interfaces;
 
-public interface IJob//<TData> where TData : IJobData
+public interface IJob<out TData> where TData : IJobData
 {
-    bool StartJob();
-    bool StopJob();
-
+    bool DoJob();
+    bool StopJob(Guid jobId);
+    TData GetCurrentState(Guid jobId);
 }
 
 public interface IJobData

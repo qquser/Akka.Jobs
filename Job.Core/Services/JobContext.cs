@@ -5,7 +5,7 @@ using Job.Core.Theater.Workers.Messages;
 
 namespace Job.Core.Services;
 
-internal class JobContext : IJobContext
+internal class JobContext<TData> : IJobContext<TData> where TData : IJobData
 {
     private readonly IActorRef _jobContext;
     
@@ -20,7 +20,7 @@ internal class JobContext : IJobContext
         _jobContext.Tell(new DoJobCommand
         {
             JobId = id,
-            GroupId = "test"
+            GroupType = typeof(TData)
         });
         return id;
     }
@@ -31,7 +31,7 @@ internal class JobContext : IJobContext
         return await _jobContext.Ask<JobCommandResult>(new DoJobCommand
         {
             JobId = id,
-            GroupId = "test"
+            GroupType = typeof(TData)
         });
     }
 

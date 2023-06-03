@@ -9,9 +9,9 @@ namespace Job.Api.Controllers;
 [Route("[controller]")]
 public class JobController : ControllerBase
 {
-    private readonly IJobContext _jobContext;
+    private readonly IJobContext<TestJob> _jobContext;
     
-    public JobController(IJobContext jobContext)
+    public JobController(IJobContext<TestJob> jobContext)
     {
         _jobContext = jobContext;
     }
@@ -45,20 +45,36 @@ public class JobController : ControllerBase
     }
 }
 
-public class ForEachJob : IJob//<TestJob>
+public class ForEachJob : IJob<TestJob>
 {
     private bool _stopped;
-    public bool StartJob()
+    private int _currentState;
+    public bool DoJob()
     {
         foreach (var item in Enumerable.Range(0, 10))
         {
             if (_stopped)
                 return false;
+            _currentState = item;
             Console.WriteLine($"Job {item}");
             Thread.Sleep(1000);
         }
 
         return true;
+    }
+
+    public bool StopJob(Guid jobId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public TestJob GetCurrentState(Guid jobId)
+    {
+        return new TestJob
+        {
+            Id = jobId,
+            Data = _currentState
+        };
     }
 
     public bool StopJob()

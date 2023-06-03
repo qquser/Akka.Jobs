@@ -2,7 +2,7 @@ using Job.Core.Models;
 
 namespace Job.Core.Interfaces;
 
-public interface IJobContext
+public interface IJobContext<TData> where TData : IJobData
 {
     /// <summary>
     /// Create a background job

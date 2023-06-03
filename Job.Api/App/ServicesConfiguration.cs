@@ -7,6 +7,6 @@ public static class ServicesConfiguration
 {
     public static void ConfigureServices(this IServiceCollection services)
     {
-        services.AddScoped<IJob, ForEachJob>();
+        services.AddScoped<IJob<TestJob>, ForEachJob>();
     }
 }
