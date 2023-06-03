@@ -17,7 +17,7 @@ internal class JobContext : IJobContext
     public Guid CreateJob()
     {
         var id = Guid.NewGuid();
-        _jobContext.Tell(new MakeWorkCommand
+        _jobContext.Tell(new DoJobCommand
         {
             JobId = id,
             GroupId = "test"
@@ -25,10 +25,10 @@ internal class JobContext : IJobContext
         return id;
     }
 
-    public async Task<MakeWorkCommandResult> MakeWorkAsync()
+    public async Task<JobCommandResult> DoJobAsync()
     {
         var id = Guid.NewGuid();
-        return await _jobContext.Ask<MakeWorkCommandResult>(new MakeWorkCommand
+        return await _jobContext.Ask<JobCommandResult>(new DoJobCommand
         {
             JobId = id,
             GroupId = "test"

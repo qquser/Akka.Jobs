@@ -12,10 +12,18 @@ internal class MasterActor : ReceiveActor
     
     public MasterActor()
     {
-        Receive<MakeWorkCommand>(StartJobCommandHandler);
+        Receive<DoJobCommand>(StartJobCommandHandler);
         //Receive<StopJobCommand>(StopJobCommandHandler);
         
         Receive<Terminated>(GroupActorTerminatedHandler);
+    }
+    
+    protected override SupervisorStrategy SupervisorStrategy()
+    {
+        return new OneForOneStrategy(
+            maxNrOfRetries: -1,
+            withinTimeRange: TimeSpan.FromMilliseconds(-1),
+            localOnlyDecider: ex => Directive.Stop);
     }
     
     private void GroupActorTerminatedHandler(Terminated t)
@@ -28,13 +36,13 @@ internal class MasterActor : ReceiveActor
         // LogActorState(text);
     }
     
-    private void StartJobCommandHandler(MakeWorkCommand command)
+    private void StartJobCommandHandler(DoJobCommand command)
     {
         if (_groupIdToActor.TryGetValue(command.GroupId, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
-                Sender.Tell(new MakeWorkCommandResult(false, "IsTerminated == true. Group Actor has been terminated."));
+                Sender.Tell(new JobCommandResult(false, "IsTerminated == true. Group Actor has been terminated."));
                 return;
             }
 

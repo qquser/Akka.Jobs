@@ -5,15 +5,15 @@ namespace Job.Core.Interfaces;
 public interface IJobContext
 {
     /// <summary>
-    /// Create a background task
+    /// Create a background job
     /// </summary>
     /// <returns>Job Id</returns>
     Guid CreateJob();
     
     /// <summary>
-    /// Waiting for a response about the completion of the task
+    /// Waiting for a response about the completion of the job
     /// </summary>
-    Task<MakeWorkCommandResult> MakeWorkAsync();
+    Task<JobCommandResult> DoJobAsync();
     
     Task<StopJobCommandResult> StopJobAsync(Guid jobId);
 }

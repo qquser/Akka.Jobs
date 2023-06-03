@@ -22,15 +22,15 @@ internal class WorkerActor : ReceiveActor
 
         _scope = serviceProvider.CreateScope();
         
-        Receive<MakeWorkCommand>(StartJobCommandHandler);
+        Receive<DoJobCommand>(DoJobCommandHandler);
 
         //Receive<Terminated>(DownloadActorSlaveTerminatedHandler);
     }
 
-    private void StartJobCommandHandler(MakeWorkCommand obj)
+    private void DoJobCommandHandler(DoJobCommand obj)
     {
         _job.StartJob();
-        Sender.Tell(new MakeWorkCommandResult(true, "Ok"));
+        Sender.Tell(new JobCommandResult(true, "Ok"));
     }
     
     protected override void PreStart()

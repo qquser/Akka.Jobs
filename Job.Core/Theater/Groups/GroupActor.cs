@@ -16,22 +16,30 @@ internal class GroupActor : ReceiveActor
     {
         _groupId = groupId;
         
-        Receive<MakeWorkCommand>(StartJobCommandHandler);
+        Receive<DoJobCommand>(StartJobCommandHandler);
 
         //Receive<Terminated>(DownloadActorTerminatedHandler);
     }
+    
+    protected override SupervisorStrategy SupervisorStrategy()
+    {
+        return new OneForOneStrategy(
+            maxNrOfRetries: -1,
+            withinTimeRange: TimeSpan.FromMilliseconds(-1),
+            localOnlyDecider: ex => Directive.Stop);
+    }
 
-    private void StartJobCommandHandler(MakeWorkCommand createMsg)
+    private void StartJobCommandHandler(DoJobCommand createMsg)
     {
         if (!createMsg.GroupId.Equals(_groupId))
         {
-            Sender.Tell(new MakeWorkCommandResult(false, "IgnoringCreateDownload_Info"));
+            Sender.Tell(new JobCommandResult(false, "IgnoringCreateDownload_Info"));
             return;
         }
 
         if (_idToJobActor.ContainsKey(createMsg.JobId))
         {
-            Sender.Tell(new MakeWorkCommandResult(false, "ActorExists_Info"));
+            Sender.Tell(new JobCommandResult(false, "ActorExists_Info"));
             return;
         }
         

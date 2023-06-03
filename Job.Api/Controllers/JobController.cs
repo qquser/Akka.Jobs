@@ -24,10 +24,10 @@ public class JobController : ControllerBase
     }
     
     [HttpPost]
-    [Route(nameof(MakeWork))]
-    public async Task<MakeWorkCommandResult> MakeWork()
+    [Route(nameof(DoJob))]
+    public async Task<JobCommandResult> DoJob()
     {
-        return await _jobContext.MakeWorkAsync();
+        return await _jobContext.DoJobAsync();
     }
     
     [HttpPost]
