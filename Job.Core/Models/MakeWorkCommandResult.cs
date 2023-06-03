@@ -1,14 +1,14 @@
 ﻿namespace Job.Core.Models;
 
-public sealed class StartJobCommandResult
+public sealed class MakeWorkCommandResult
 {
-    public StartJobCommandResult(bool success, string result)
+    public MakeWorkCommandResult(bool success, string result)
     {
         Success = success;
         Result = result;
     }
     
-    public StartJobCommandResult()
+    public MakeWorkCommandResult()
     {
         Success = true;
         Result = "";

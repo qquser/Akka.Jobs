@@ -1,8 +1,6 @@
-﻿using Akka.Actor;
-using Job.Core.Interfaces;
+﻿using Job.Core.Interfaces;
 using Job.Core.Models;
 using Job.Core.Models.Enums;
-using Job.Core.Theater.Workers.Messages;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Job.Api.Controllers;
@@ -11,31 +9,32 @@ namespace Job.Api.Controllers;
 [Route("[controller]")]
 public class JobController : ControllerBase
 {
-    private readonly IActorRef _jobContext;
+    private readonly IJobContext _jobContext;
     
-    public JobController(IActorRef jobContext)
+    public JobController(IJobContext jobContext)
     {
         _jobContext = jobContext;
     }
     
     [HttpPost]
     [Route(nameof(CreateJob))]
-    public async Task<Guid> CreateJob()
+    public Guid CreateJob()
     {
-        var id = Guid.NewGuid();
-        var result = await _jobContext.Ask<StartJobCommandResult>(new StartJobCommand
-        {
-            JobId = id,
-            GroupId = "test"
-        });
-        return id;
+        return _jobContext.CreateJob();
+    }
+    
+    [HttpPost]
+    [Route(nameof(MakeWork))]
+    public async Task<MakeWorkCommandResult> MakeWork()
+    {
+        return await _jobContext.MakeWorkAsync();
     }
     
     [HttpPost]
     [Route(nameof(StopJob))]
-    public StopJobCommandResult StopJob([FromBody] Guid jobId)
+    public async Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
     {
-        throw new NotImplementedException();
+        return await _jobContext.StopJobAsync(jobId);
     }
     
     [HttpGet]

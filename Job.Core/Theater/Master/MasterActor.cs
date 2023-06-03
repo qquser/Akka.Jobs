@@ -5,14 +5,14 @@ using Job.Core.Theater.Workers.Messages;
 
 namespace Job.Core.Theater.Master;
 
-public class MasterActor : ReceiveActor
+internal class MasterActor : ReceiveActor
 {
     private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
     private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
     
     public MasterActor()
     {
-        Receive<StartJobCommand>(StartJobCommandHandler);
+        Receive<MakeWorkCommand>(StartJobCommandHandler);
         //Receive<StopJobCommand>(StopJobCommandHandler);
         
         Receive<Terminated>(GroupActorTerminatedHandler);
@@ -28,13 +28,13 @@ public class MasterActor : ReceiveActor
         // LogActorState(text);
     }
     
-    private void StartJobCommandHandler(StartJobCommand command)
+    private void StartJobCommandHandler(MakeWorkCommand command)
     {
         if (_groupIdToActor.TryGetValue(command.GroupId, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
-                Sender.Tell(new StartJobCommandResult(false, "IsTerminated == true. Group Actor has been terminated."));
+                Sender.Tell(new MakeWorkCommandResult(false, "IsTerminated == true. Group Actor has been terminated."));
                 return;
             }
 

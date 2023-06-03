@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Job.Core.Theater.Workers;
 
-public class WorkerActor : ReceiveActor
+internal class WorkerActor : ReceiveActor
 {
     private readonly Guid _actorId;
     private readonly string _groupId;
@@ -22,15 +22,15 @@ public class WorkerActor : ReceiveActor
 
         _scope = serviceProvider.CreateScope();
         
-        Receive<StartJobCommand>(StartJobCommandHandler);
+        Receive<MakeWorkCommand>(StartJobCommandHandler);
 
         //Receive<Terminated>(DownloadActorSlaveTerminatedHandler);
     }
 
-    private void StartJobCommandHandler(StartJobCommand obj)
+    private void StartJobCommandHandler(MakeWorkCommand obj)
     {
         _job.StartJob();
-        Sender.Tell(new StartJobCommandResult(true, "Ok"));
+        Sender.Tell(new MakeWorkCommandResult(true, "Ok"));
     }
     
     protected override void PreStart()

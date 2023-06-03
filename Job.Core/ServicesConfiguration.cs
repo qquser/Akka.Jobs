@@ -1,5 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
+using Job.Core.Interfaces;
+using Job.Core.Services;
 using Job.Core.Theater.Master;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,5 +22,6 @@ public static class ServicesConfiguration
             var actorSystem = provider.GetService<ActorSystem>();
             return actorSystem.ActorOf(Props.Create<MasterActor>());
         });
+        services.AddScoped<IJobContext, JobContext>();
     }
 }

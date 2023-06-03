@@ -6,7 +6,7 @@ using Job.Core.Theater.Workers.Messages;
 
 namespace Job.Core.Theater.Groups;
 
-public class GroupActor : ReceiveActor
+internal class GroupActor : ReceiveActor
 {
     private readonly string _groupId;
     
@@ -16,22 +16,22 @@ public class GroupActor : ReceiveActor
     {
         _groupId = groupId;
         
-        Receive<StartJobCommand>(StartJobCommandHandler);
+        Receive<MakeWorkCommand>(StartJobCommandHandler);
 
         //Receive<Terminated>(DownloadActorTerminatedHandler);
     }
 
-    private void StartJobCommandHandler(StartJobCommand createMsg)
+    private void StartJobCommandHandler(MakeWorkCommand createMsg)
     {
         if (!createMsg.GroupId.Equals(_groupId))
         {
-            Sender.Tell(new StartJobCommandResult(false, "IgnoringCreateDownload_Info"));
+            Sender.Tell(new MakeWorkCommandResult(false, "IgnoringCreateDownload_Info"));
             return;
         }
 
         if (_idToJobActor.ContainsKey(createMsg.JobId))
         {
-            Sender.Tell(new StartJobCommandResult(false, "ActorExists_Info"));
+            Sender.Tell(new MakeWorkCommandResult(false, "ActorExists_Info"));
             return;
         }
         
