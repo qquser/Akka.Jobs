@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Job.Core.Interfaces;
+using Job.Core.Models;
 using Job.Core.Theater.Workers.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,7 +29,8 @@ public class WorkerActor : ReceiveActor
 
     private void StartJobCommandHandler(StartJobCommand obj)
     {
-        throw new NotImplementedException();
+        _job.StartJob();
+        Sender.Tell(new StartJobCommandResult(true, "Ok"));
     }
     
     protected override void PreStart()

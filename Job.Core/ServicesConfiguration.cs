@@ -9,18 +9,16 @@ public static class ServicesConfiguration
 {
     public static void ConfigureJobServices(this IServiceCollection services)
     {
-        //var serviceProvider = //
-        var di = DependencyResolverSetup.Create(serviceProvider);
-
-        var actorSystemSetup = BootstrapSetup.Create().And(di);
-        var system = ActorSystem.Create("job-worker-system", actorSystemSetup);
-        
-        services.AddSingleton(_ => system);
+        services.AddSingleton(provider =>
+        {
+            var di = DependencyResolverSetup.Create(provider);
+            var actorSystemSetup = BootstrapSetup.Create().And(di);
+            return ActorSystem.Create("job-worker-system", actorSystemSetup);
+        });
         services.AddSingleton<IActorRef>(provider =>
         {
             var actorSystem = provider.GetService<ActorSystem>();
             return actorSystem.ActorOf(Props.Create<MasterActor>());
         });
-
     }
 }

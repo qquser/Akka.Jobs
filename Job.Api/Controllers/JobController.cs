@@ -51,7 +51,7 @@ public class ForEachJob : IJob//<TestJob>
     private bool _stopped;
     public bool StartJob()
     {
-        foreach (var item in Enumerable.Range(0, 1000))
+        foreach (var item in Enumerable.Range(0, 10))
         {
             if (_stopped)
                 return false;
