@@ -14,6 +14,8 @@ internal class ManagerActor : ReceiveActor
     private TimeSpan _maxBackoff;
     private IActorRef? _doJobCommandSender;
     private IActorRef? _workerSupervisorActor;
+    private WorkerDoJobCommand? _doJobCommand;
+    
     private readonly Guid _jobId;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
@@ -23,9 +25,17 @@ internal class ManagerActor : ReceiveActor
         
         Receive<DoJobCommand>(StartJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
-
+        
+        Receive<GiveMeWorkerDoJobCommand>(GiveMeWorkerDoJobCommandHandler);
+        
         Receive<Terminated>(WorkerActorTerminatedHandler);
     }
+
+    private void GiveMeWorkerDoJobCommandHandler(GiveMeWorkerDoJobCommand _)
+    {
+        _workerSupervisorActor.Tell(_doJobCommand);
+    }
+
     private void StopJobCommandHandler(StopJobCommand _)
     {
         _cancellationTokenSource.Cancel();
@@ -85,13 +95,18 @@ internal class ManagerActor : ReceiveActor
   
         Context.Watch(_workerSupervisorActor);
         
-        _workerSupervisorActor.Tell(new WorkerDoJobCommand(
+        _doJobCommand = new WorkerDoJobCommand(
             doJobCommand.JobInput,
             doJobCommand.JobInputType,
             _doJobCommandSender, 
             doJobCommand.JobId, 
             doJobCommand.JobResultType,
-            _cancellationTokenSource));
+            _cancellationTokenSource);
+    }
+    
+    protected override void PostStop()
+    {
+        _cancellationTokenSource?.Dispose();
     }
 
     protected override SupervisorStrategy SupervisorStrategy()

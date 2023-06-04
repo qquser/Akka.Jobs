@@ -9,7 +9,7 @@ builder.Services.AddSwaggerGen();
 
 //Job library registration
 builder.Services.AddScoped<IJob<TestJobInput, TestJobResult>, ForEachJob>();
-builder.Services.ConfigureJobServices();
+builder.Services.AddJobContext();
 
 
 var app = builder.Build();

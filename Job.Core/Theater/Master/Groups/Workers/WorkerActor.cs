@@ -17,8 +17,6 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     
     private IJob<TIn, TOut> _job;
 
-    private CancellationTokenSource _cancelTokenSource;
-    
     public WorkerActor(IServiceProvider serviceProvider)
     {
         _scope = serviceProvider.CreateScope();
@@ -28,6 +26,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         {
             DoJobCommandHandlerAsync(msg).PipeTo(Self);
         });
+        Context.Parent.Tell(new GiveMeWorkerDoJobCommand());
     }
 
     private void Failed(Status.Failure msg)
@@ -39,11 +38,11 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     {
         _actorId = command.JobId;
         _groupId = command.GroupType;
-        _cancelTokenSource = command.CancellationTokenSource;
-        
-        var jobResult = await _job.DoAsync((TIn)command.JobInput, _cancelTokenSource.Token);
 
-        command.DoJobCommandSender.Tell(_cancelTokenSource.Token.IsCancellationRequested
+        var token = command.CancellationTokenSource.Token;
+        var jobResult = await _job.DoAsync((TIn)command.JobInput, token);
+
+        command.DoJobCommandSender.Tell(token.IsCancellationRequested
             ? new JobCommandResult(false, "Job was cancelled.", command.JobId)
             : new JobCommandResult(jobResult, "Ok", command.JobId));
         
@@ -58,6 +57,5 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     protected override void PostStop()
     {
         _scope.Dispose();
-        _cancelTokenSource?.Dispose();
     }
 }

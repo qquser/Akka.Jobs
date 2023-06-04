@@ -9,7 +9,7 @@ namespace Job.Core;
 
 public static class ServicesConfiguration
 {
-    public static void ConfigureJobServices(this IServiceCollection services)
+    public static void AddJobContext(this IServiceCollection services)
     {
         services.AddSingleton(provider =>
         {

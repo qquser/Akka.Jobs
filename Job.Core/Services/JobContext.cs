@@ -33,7 +33,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
             GetGroupName(),
             minBackoff ?? TimeSpan.FromSeconds(1),
             maxBackoff ?? TimeSpan.FromSeconds(3),
-            maxNrOfRetries ?? 5));
+            maxNrOfRetries ?? 4));
         return id;
     }
 
@@ -49,7 +49,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
                 GetGroupName(),
                 minBackoff ?? TimeSpan.FromSeconds(1),
                 maxBackoff ?? TimeSpan.FromSeconds(3),
-                maxNrOfRetries ?? 5));
+                maxNrOfRetries ?? 4));
     }
 
     public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)

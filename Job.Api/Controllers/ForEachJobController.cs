@@ -56,6 +56,7 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
             _currentState = item;
             Console.WriteLine($"Job {item}");
             await Task.Delay(1000, token);
+            throw new Exception();
         }
 
         return true;
