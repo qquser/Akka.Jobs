@@ -1,9 +1,9 @@
 ﻿using Akka.Actor;
 using Job.Core.Models;
-using Job.Core.Theater.Workers;
-using Job.Core.Theater.Workers.Messages;
+using Job.Core.Theater.Master.Groups.Workers;
+using Job.Core.Theater.Master.Groups.Workers.Messages;
 
-namespace Job.Core.Theater.Groups;
+namespace Job.Core.Theater.Master.Groups;
 
 internal class GroupActor : ReceiveActor
 {

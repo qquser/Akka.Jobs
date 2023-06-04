@@ -1,6 +1,6 @@
 using Akka.Actor;
 
-namespace Job.Core.Theater.Workers.Messages;
+namespace Job.Core.Theater.Master.Groups.Workers.Messages;
 
 internal sealed class WorkerDoJobCommand
 {

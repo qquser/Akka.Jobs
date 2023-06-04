@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
 using Job.Core.Models;
-using Job.Core.Theater.Groups;
-using Job.Core.Theater.Workers.Messages;
+using Job.Core.Theater.Master.Groups;
+using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Theater.Master;
 

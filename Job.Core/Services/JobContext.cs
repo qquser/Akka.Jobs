@@ -1,7 +1,7 @@
 using Akka.Actor;
 using Job.Core.Interfaces;
 using Job.Core.Models;
-using Job.Core.Theater.Workers.Messages;
+using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Services;
 
@@ -22,18 +22,23 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         return type;
     }
 
-    public Guid CreateJob(TIn input, Guid? jobId = null)
+    public Guid CreateJob(TIn input,
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
         var id = jobId ?? Guid.NewGuid();
         _jobContext.Tell(new DoJobCommand(input, 
             typeof(TIn), 
             typeof(TOut), 
             id,
-            GetGroupName()));
+            GetGroupName(),
+            minBackoff ?? TimeSpan.FromSeconds(1),
+            maxBackoff ?? TimeSpan.FromSeconds(3),
+            maxNrOfRetries ?? 5));
         return id;
     }
 
-    public async Task<JobCommandResult> DoJobAsync(TIn input, Guid? jobId = null)
+    public async Task<JobCommandResult> DoJobAsync(TIn input, 
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
         var id = jobId ?? Guid.NewGuid();
         return await _jobContext.Ask<JobCommandResult>(
@@ -41,7 +46,10 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
                 typeof(TIn),
                 typeof(TOut),
                 id,
-                GetGroupName()));
+                GetGroupName(),
+                minBackoff ?? TimeSpan.FromSeconds(1),
+                maxBackoff ?? TimeSpan.FromSeconds(3),
+                maxNrOfRetries ?? 5));
     }
 
     public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
