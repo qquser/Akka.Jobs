@@ -9,11 +9,11 @@ internal sealed class WorkerDoJobCommand
         Type jobInputType, 
         IActorRef doJobCommandSender, 
         Guid jobId, 
-        Type groupType,
+        Type jobResultType,
         CancellationTokenSource cancellationTokenSource)
     {
         JobId = jobId;
-        GroupType = groupType;
+        JobResultType = jobResultType;
         CancellationTokenSource = cancellationTokenSource;
         DoJobCommandSender = doJobCommandSender;
         JobInput = jobInput;
@@ -23,7 +23,7 @@ internal sealed class WorkerDoJobCommand
     public Type JobInputType { get; }
     public IActorRef DoJobCommandSender { get; }
     public Guid JobId { get; }
-    public Type GroupType { get; }
+    public Type JobResultType { get; }
     public CancellationTokenSource CancellationTokenSource { get; }
 
 }

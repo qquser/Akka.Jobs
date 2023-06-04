@@ -28,7 +28,17 @@ internal class ManagerActor : ReceiveActor
         
         Receive<GiveMeWorkerDoJobCommand>(GiveMeWorkerDoJobCommandHandler);
         
+        Receive<ReadWorkerInfoCommand>(ReadWorkerInfoCommandHandler);
+        
         Receive<Terminated>(WorkerActorTerminatedHandler);
+    }
+
+    private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand command)
+    {
+        if (_workerSupervisorActor == null || command.JobId != _jobId)
+            return;
+
+        _workerSupervisorActor.Forward(command);
     }
 
     private void GiveMeWorkerDoJobCommandHandler(GiveMeWorkerDoJobCommand _)
