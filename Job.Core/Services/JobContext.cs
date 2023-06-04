@@ -16,40 +16,19 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         _jobContext = jobContext;
     }
 
-    private string GetGroupName()
-    {
-        var type = GetType().ToString();
-        return type;
-    }
-
     public Guid CreateJob(TIn input,
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
-        var id = jobId ?? Guid.NewGuid();
-        _jobContext.Tell(new DoJobCommand(input, 
-            typeof(TIn), 
-            typeof(TOut), 
-            id,
-            GetGroupName(),
-            minBackoff ?? TimeSpan.FromSeconds(1),
-            maxBackoff ?? TimeSpan.FromSeconds(3),
-            maxNrOfRetries ?? 4));
-        return id;
+        var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
+        _jobContext.Tell(command);
+        return command.JobId;//
     }
 
     public async Task<JobCommandResult> DoJobAsync(TIn input, 
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
-        var id = jobId ?? Guid.NewGuid();
-        return await _jobContext.Ask<JobCommandResult>(
-            new DoJobCommand(input,
-                typeof(TIn),
-                typeof(TOut),
-                id,
-                GetGroupName(),
-                minBackoff ?? TimeSpan.FromSeconds(1),
-                maxBackoff ?? TimeSpan.FromSeconds(3),
-                maxNrOfRetries ?? 4));
+        var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
+        return await _jobContext.Ask<JobCommandResult>(command);
     }
 
     public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
@@ -61,5 +40,25 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     public Task<TOut> GetCurrentStateAsync(Guid jobId)
     {
         throw new NotImplementedException();
+    }
+    
+    private string GetGroupName()
+    {
+        var type = GetType().ToString();
+        return type;
+    }
+    
+    private DoJobCommand GetDoJobCommand(TIn input,
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
+    {
+        var id = jobId ?? Guid.NewGuid();
+        return new DoJobCommand(input,
+            typeof(TIn),
+            typeof(TOut),
+            id,
+            GetGroupName(),
+            minBackoff ?? TimeSpan.FromSeconds(1),
+            maxBackoff ?? TimeSpan.FromSeconds(3),
+            maxNrOfRetries ?? 4);
     }
 }
