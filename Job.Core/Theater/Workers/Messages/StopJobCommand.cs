@@ -1,6 +1,6 @@
 namespace Job.Core.Theater.Workers.Messages;
 
-public sealed class StopJobCommand
+internal sealed class StopJobCommand
 {
     public StopJobCommand(Guid jobId, string groupName)
     {

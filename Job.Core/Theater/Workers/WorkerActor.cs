@@ -41,7 +41,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         _groupId = command.GroupType;
         _cancelTokenSource = command.CancellationTokenSource;
         
-        var jobResult = await _job.DoJobAsync((TIn)command.JobInput, _cancelTokenSource.Token);
+        var jobResult = await _job.DoAsync((TIn)command.JobInput, _cancelTokenSource.Token);
 
         command.DoJobCommandSender.Tell(_cancelTokenSource.Token.IsCancellationRequested
             ? new JobCommandResult(false, "Job was cancelled.", command.JobId)

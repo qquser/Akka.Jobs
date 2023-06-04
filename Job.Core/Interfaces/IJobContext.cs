@@ -2,7 +2,9 @@ using Job.Core.Models;
 
 namespace Job.Core.Interfaces;
 
-public interface IJobContext<in TIn, out TOut> where TOut : IJobResult
+public interface IJobContext<in TIn, TOut>
+    where TIn : IJobInput
+    where TOut : IJobResult
 {
     /// <summary>
     /// Create a background job
@@ -16,4 +18,6 @@ public interface IJobContext<in TIn, out TOut> where TOut : IJobResult
     Task<JobCommandResult> DoJobAsync(TIn input, Guid? jobId = null);
     
     Task<StopJobCommandResult> StopJobAsync(Guid jobId);
+    
+    Task<TOut> GetCurrentStateAsync(Guid jobId);
 }

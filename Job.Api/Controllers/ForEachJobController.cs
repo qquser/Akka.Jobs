@@ -1,6 +1,5 @@
 ﻿using Job.Core.Interfaces;
 using Job.Core.Models;
-using Job.Core.Models.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Job.Api.Controllers;
@@ -39,16 +38,16 @@ public class ForEachJobController : ControllerBase
     
     [HttpGet]
     [Route(nameof(GetJob))]
-    public (TestJobResult, JobState) GetJob([FromQuery] Guid jobId)
+    public async Task<TestJobResult> GetJob([FromQuery] Guid jobId)
     {
-        throw new NotImplementedException();
+        return await _jobContext.GetCurrentStateAsync(jobId);
     }
 }
 
 public class ForEachJob : IJob<TestJobInput, TestJobResult>
 {
     private int _currentState;
-    public async Task<bool> DoJobAsync(TestJobInput input, CancellationToken token)
+    public async Task<bool> DoAsync(TestJobInput input, CancellationToken token)
     {
         foreach (var item in Enumerable.Range(0, input.Count))
         {
@@ -56,7 +55,7 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
                 return false;
             _currentState = item;
             Console.WriteLine($"Job {item}");
-            Thread.Sleep(1000);
+            await Task.Delay(1000, token);
         }
 
         return true;

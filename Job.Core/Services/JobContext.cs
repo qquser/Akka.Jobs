@@ -5,7 +5,7 @@ using Job.Core.Theater.Workers.Messages;
 
 namespace Job.Core.Services;
 
-internal class JobContext<TIn, TOut>  : IJobContext<TIn, TOut> 
+internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut> 
     where TIn : IJobInput
     where TOut : IJobResult
 {
@@ -48,5 +48,10 @@ internal class JobContext<TIn, TOut>  : IJobContext<TIn, TOut>
     {
         return await _jobContext.Ask<StopJobCommandResult>(
             new StopJobCommand(jobId, GetGroupName()));
+    }
+
+    public Task<TOut> GetCurrentStateAsync(Guid jobId)
+    {
+        throw new NotImplementedException();
     }
 }
