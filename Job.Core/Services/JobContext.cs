@@ -5,7 +5,9 @@ using Job.Core.Theater.Workers.Messages;
 
 namespace Job.Core.Services;
 
-internal class JobContext<TData> : IJobContext<TData> where TData : IJobData
+internal class JobContext<TIn, TOut>  : IJobContext<TIn, TOut> 
+    where TIn : IJobInput
+    where TOut : IJobResult
 {
     private readonly IActorRef _jobContext;
     
@@ -14,23 +16,37 @@ internal class JobContext<TData> : IJobContext<TData> where TData : IJobData
         _jobContext = jobContext;
     }
 
-    public Guid CreateJob()
+    private string GetGroupName()
     {
-        var jobId = Guid.NewGuid();
-        _jobContext.Tell(new DoJobCommand(jobId, typeof(TData)));
-        return jobId;
+        var type = GetType().ToString();
+        return type;
     }
 
-    public async Task<JobCommandResult> DoJobAsync()
+    public Guid CreateJob(TIn input, Guid? jobId = null)
     {
-        var jobId = Guid.NewGuid();
+        var id = jobId ?? Guid.NewGuid();
+        _jobContext.Tell(new DoJobCommand(input, 
+            typeof(TIn), 
+            typeof(TOut), 
+            id,
+            GetGroupName()));
+        return id;
+    }
+
+    public async Task<JobCommandResult> DoJobAsync(TIn input, Guid? jobId = null)
+    {
+        var id = jobId ?? Guid.NewGuid();
         return await _jobContext.Ask<JobCommandResult>(
-            new DoJobCommand(jobId, typeof(TData)));
+            new DoJobCommand(input,
+                typeof(TIn),
+                typeof(TOut),
+                id,
+                GetGroupName()));
     }
 
     public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
     {
         return await _jobContext.Ask<StopJobCommandResult>(
-            new StopJobCommand(jobId, typeof(TData)));
+            new StopJobCommand(jobId, GetGroupName()));
     }
 }

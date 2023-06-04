@@ -42,8 +42,8 @@ internal class ManagerActor : ReceiveActor
         }
 
         var dependencyResolver = DependencyResolver.For(Context.System);
-        var workerActorType = typeof(WorkerActor<>)
-            .MakeGenericType(doJobCommand.GroupType);
+        var workerActorType = typeof(WorkerActor<,>)
+            .MakeGenericType(doJobCommand.JobInputType, doJobCommand.JobResultType);
         var workerActorProps = dependencyResolver
             .Props(workerActorType);
         
@@ -51,9 +51,12 @@ internal class ManagerActor : ReceiveActor
   
         Context.Watch(_workerActor);
         
-        _workerActor.Forward(new WorkerDoJobCommand(Sender, 
+        _workerActor.Forward(new WorkerDoJobCommand(
+            doJobCommand.JobInput,
+            doJobCommand.JobInputType,
+            Sender, 
             doJobCommand.JobId, 
-            doJobCommand.GroupType,
+            doJobCommand.JobResultType,
             _cancellationTokenSource));
     }
 
@@ -67,4 +70,5 @@ internal class ManagerActor : ReceiveActor
     
     public static Props Props(Guid jobId) =>
         Akka.Actor.Props.Create(() => new ManagerActor(jobId));
+    
 }

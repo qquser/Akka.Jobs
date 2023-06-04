@@ -7,27 +7,27 @@ namespace Job.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class JobController : ControllerBase
+public class ForEachJobController : ControllerBase
 {
-    private readonly IJobContext<TestJob> _jobContext;
+    private readonly IJobContext<TestJobInput, TestJobResult> _jobContext;
     
-    public JobController(IJobContext<TestJob> jobContext)
+    public ForEachJobController(IJobContext<TestJobInput, TestJobResult> jobContext)
     {
         _jobContext = jobContext;
     }
     
     [HttpPost]
     [Route(nameof(CreateJob))]
-    public Guid CreateJob()
+    public Guid CreateJob([FromBody] TestJobInput input)
     {
-        return _jobContext.CreateJob();
+        return _jobContext.CreateJob(input);
     }
     
     [HttpPost]
     [Route(nameof(DoJob))]
-    public async Task<JobCommandResult> DoJob()
+    public async Task<JobCommandResult> DoJob([FromBody] TestJobInput input)
     {
-        return await _jobContext.DoJobAsync();
+        return await _jobContext.DoJobAsync(input);
     }
     
     [HttpPost]
@@ -39,18 +39,18 @@ public class JobController : ControllerBase
     
     [HttpGet]
     [Route(nameof(GetJob))]
-    public (TestJob, JobState) GetJob([FromQuery] Guid jobId)
+    public (TestJobResult, JobState) GetJob([FromQuery] Guid jobId)
     {
         throw new NotImplementedException();
     }
 }
 
-public class ForEachJob : IJob<TestJob>
+public class ForEachJob : IJob<TestJobInput, TestJobResult>
 {
     private int _currentState;
-    public async Task<bool> DoJobAsync(CancellationToken token)
+    public async Task<bool> DoJobAsync(TestJobInput input, CancellationToken token)
     {
-        foreach (var item in Enumerable.Range(0, 100))
+        foreach (var item in Enumerable.Range(0, input.Count))
         {
             if (token.IsCancellationRequested)
                 return false;
@@ -62,9 +62,9 @@ public class ForEachJob : IJob<TestJob>
         return true;
     }
 
-    public TestJob GetCurrentState(Guid jobId)
+    public TestJobResult GetCurrentState(Guid jobId)
     {
-        return new TestJob
+        return new TestJobResult
         {
             Id = jobId,
             Data = _currentState
@@ -73,7 +73,12 @@ public class ForEachJob : IJob<TestJob>
 
 }
 
-public class TestJob : IJobData
+public class TestJobInput : IJobInput
+{
+    public int Count { get; set; }
+}
+
+public class TestJobResult : IJobResult
 {
     public Guid Id { get; set; }
     public int Data { get; set; }

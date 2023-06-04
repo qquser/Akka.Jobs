@@ -42,7 +42,7 @@ internal class GroupActor : ReceiveActor
 
     private void StartJobCommandHandler(DoJobCommand doJobCommand)
     {
-        if (doJobCommand.GroupType != _groupId)
+        if (doJobCommand.JobResultType != _groupId)
         {
             Sender.Tell(new JobCommandResult(false, "Ignoring Create Worker Actor", doJobCommand.JobId));
             return;

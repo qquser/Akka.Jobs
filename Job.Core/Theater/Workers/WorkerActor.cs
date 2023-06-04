@@ -6,15 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Job.Core.Theater.Workers;
 
-internal class WorkerActor<TData> : ReceiveActor 
-    where TData : IJobData
+internal class WorkerActor<TIn, TOut> : ReceiveActor
+    where TIn : IJobInput
+    where TOut : IJobResult
 {
     private Guid _actorId;
     private Type _groupId;
     
     private readonly IServiceScope _scope;
     
-    private IJob<TData> _job;
+    private IJob<TIn, TOut> _job;
 
     private CancellationTokenSource _cancelTokenSource;
     
@@ -40,7 +41,7 @@ internal class WorkerActor<TData> : ReceiveActor
         _groupId = command.GroupType;
         _cancelTokenSource = command.CancellationTokenSource;
         
-        var jobResult = await _job.DoJobAsync(_cancelTokenSource.Token);
+        var jobResult = await _job.DoJobAsync((TIn)command.JobInput, _cancelTokenSource.Token);
 
         command.DoJobCommandSender.Tell(_cancelTokenSource.Token.IsCancellationRequested
             ? new JobCommandResult(false, "Job was cancelled.", command.JobId)
@@ -51,7 +52,7 @@ internal class WorkerActor<TData> : ReceiveActor
 
     protected override void PreStart()
     {
-        _job = _scope.ServiceProvider.GetService<IJob<TData>>();
+        _job = _scope.ServiceProvider.GetService<IJob<TIn, TOut>>();
     }
     
     protected override void PostStop()

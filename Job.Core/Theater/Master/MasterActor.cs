@@ -7,8 +7,8 @@ namespace Job.Core.Theater.Master;
 
 internal class MasterActor : ReceiveActor
 {
-    private readonly Dictionary<Type, IActorRef> _groupIdToActor = new();
-    private readonly Dictionary<IActorRef, Type> _actorToGroupId = new();
+    private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
+    private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
     
     public MasterActor()
     {
@@ -20,13 +20,13 @@ internal class MasterActor : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand command)
     {
-        if (!_groupIdToActor.ContainsKey(command.GroupType))
+        if (!_groupIdToActor.ContainsKey(command.GroupName))
         {
-            Sender.Tell(new StopJobCommandResult(false, $"_groupIdToActor does not contain {command.GroupType}"));
+            Sender.Tell(new StopJobCommandResult(false, $"_groupIdToActor does not contain {command.GroupName}"));
             return;
         }
 
-        _groupIdToActor[command.GroupType].Forward(command);
+        _groupIdToActor[command.GroupName].Forward(command);
     }
 
     private void GroupActorTerminatedHandler(Terminated t)
@@ -41,7 +41,7 @@ internal class MasterActor : ReceiveActor
     
     private void StartJobCommandHandler(DoJobCommand command)
     {
-        if (_groupIdToActor.TryGetValue(command.GroupType, out var actorRef))
+        if (_groupIdToActor.TryGetValue(command.GroupName, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
@@ -54,11 +54,11 @@ internal class MasterActor : ReceiveActor
             return;
         }
         
-        var groupActor = Context.ActorOf(GroupActor.Props(command.GroupType), $"group-{command.GroupType}");
+        var groupActor = Context.ActorOf(GroupActor.Props(command.JobResultType), $"group-{command.JobResultType}");
         Context.Watch(groupActor);
         groupActor.Forward(command);
-        _groupIdToActor.Add(command.GroupType, groupActor);
-        _actorToGroupId.Add(groupActor, command.GroupType);
+        _groupIdToActor.Add(command.GroupName, groupActor);
+        _actorToGroupId.Add(groupActor, command.GroupName);
     }
     
     protected override SupervisorStrategy SupervisorStrategy()

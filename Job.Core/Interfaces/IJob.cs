@@ -1,12 +1,18 @@
 ﻿namespace Job.Core.Interfaces;
 
-public interface IJob<out TData> where TData : IJobData
+public interface IJob<in TIn, out TOut> 
+    where TOut : IJobResult 
+    where TIn : IJobInput
 {
-    Task<bool> DoJobAsync(CancellationToken token);
-    TData GetCurrentState(Guid jobId);
+    Task<bool> DoJobAsync(TIn input, CancellationToken token);
+    TOut GetCurrentState(Guid jobId);
 }
 
-public interface IJobData
+public interface IJobInput
+{
+}
+
+public interface IJobResult
 {
     public Guid Id { get; set; }
 }

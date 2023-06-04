@@ -2,11 +2,11 @@ namespace Job.Core.Theater.Workers.Messages;
 
 public sealed class StopJobCommand
 {
-    public StopJobCommand(Guid jobId, Type groupType)
+    public StopJobCommand(Guid jobId, string groupName)
     {
         JobId = jobId;
-        GroupType = groupType;
+        GroupName = groupName;
     }
     public Guid JobId { get; }
-    public Type GroupType { get; }
+    public string GroupName { get; }
 }

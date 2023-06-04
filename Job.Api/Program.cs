@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Job library registration
-builder.Services.AddScoped<IJob<TestJob>, ForEachJob>();
+builder.Services.AddScoped<IJob<TestJobInput, TestJobResult>, ForEachJob>();
 builder.Services.ConfigureJobServices();
 
 
