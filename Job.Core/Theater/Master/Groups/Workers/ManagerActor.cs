@@ -21,6 +21,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     private WorkerDoJobCommand<TIn>? _doJobCommand;
     
     private Guid _jobId;
+    private bool _startedFlag = false;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
     public ManagerActor()
@@ -33,8 +34,27 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
         Receive<ReadWorkerInfoCommand>(ReadWorkerInfoCommandHandler);
         
         //Internal
+        Receive<TrySaveWorkerActorRefCommand>(TrySaveWorkerActorRefCommandHandler);
         Receive<GiveMeWorkerDoJobCommand>(GiveMeWorkerDoJobCommandHandler);
         Receive<Terminated>(WorkerActorTerminatedHandler);
+    }
+
+    private void TrySaveWorkerActorRefCommandHandler(TrySaveWorkerActorRefCommand msg)
+    {
+        if (!_startedFlag)
+        {
+            var groupActor = Context.Parent;
+            if ((groupActor is LocalActorRef localActorRef) && localActorRef.IsTerminated)
+            {
+                _doJobCommandSender.Tell(new JobCommandResult(false, 
+                    "TrySaveWorkerActorRefCommand Failed. IsTerminated == true. Group Actor has been terminated.",
+                    _jobId));
+                return;
+            }
+    
+            groupActor.Tell(msg);
+            _startedFlag = true;
+        }
     }
 
     private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand command)

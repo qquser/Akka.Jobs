@@ -17,6 +17,9 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
 
     private readonly Dictionary<Guid, IActorRef> _idToManagerActor = new();
     private readonly Dictionary<IActorRef, Guid> _managerActorToId = new();
+    
+    private readonly Dictionary<IActorRef, Guid> _workerActorToId = new ();
+    private readonly Dictionary<Guid, IActorRef> _idToWorkerActor = new ();
 
     public GroupActor()
     {
@@ -28,20 +31,31 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
         Receive<RequestAllWorkersInfo>(RequestAllWorkersInfoQueryHandler);
 
         //Internal
+        Receive<TrySaveWorkerActorRefCommand>(TrySaveWorkerActorRefCommandHandler);
         Receive<Terminated>(ManagerActorTerminatedHandler);
     }
-
-    private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
-    {
-        Context.ActorOf(
-            WorkerGroupQuery<TOut>.Props(_managerActorToId, msg.RequestId, Sender, msg.Timeout));
-    }
-
+    
     private void ManagerActorTerminatedHandler(Terminated t)
     {
         var workerId = _managerActorToId[t.ActorRef];
         _managerActorToId.Remove(t.ActorRef);
         _idToManagerActor.Remove(workerId);
+
+        if (!_idToWorkerActor.TryGetValue(workerId, out var workerActorRef)) return;
+        _workerActorToId.Remove(workerActorRef);
+        _idToWorkerActor.Remove(workerId);
+    }
+    
+    private void TrySaveWorkerActorRefCommandHandler(TrySaveWorkerActorRefCommand msg)
+    {
+        _workerActorToId.TryAdd(msg.ActorRef, msg.SlaveActorId);
+        _idToWorkerActor.TryAdd(msg.SlaveActorId, msg.ActorRef);
+    }
+
+    private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
+    {
+        Context.ActorOf(
+            WorkerGroupQuery<TOut>.Props(_workerActorToId, msg.RequestId, Sender, msg.Timeout));
     }
 
     private void StopJobCommandHandler(StopJobCommand command)
