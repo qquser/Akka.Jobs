@@ -1,4 +1,5 @@
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries.Messages.States;
 
 namespace Job.Core.Interfaces;
 
@@ -21,5 +22,5 @@ public interface IJobContext<in TIn, TOut>
     
     Task<StopJobCommandResult> StopJobAsync(Guid jobId);
     
-    Task<TOut> GetCurrentStateAsync(Guid jobId);
+    Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllWorkersCurrentStateAsync(long requestId);
 }

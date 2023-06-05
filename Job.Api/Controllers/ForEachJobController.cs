@@ -37,10 +37,12 @@ public class ForEachJobController : ControllerBase
     }
     
     [HttpGet]
-    [Route(nameof(GetJob))]
-    public async Task<TestJobResult> GetJob([FromQuery] Guid jobId)
+    [Route(nameof(GetAllJobs))]
+    public async Task<ICollection<TestJobResult?>> GetAllJobs()
     {
-        return await _jobContext.GetCurrentStateAsync(jobId);
+        var result = await _jobContext
+            .GetAllWorkersCurrentStateAsync(0);
+        return result.Values.Select(x=>x.Result).ToList();
     }
 }
 

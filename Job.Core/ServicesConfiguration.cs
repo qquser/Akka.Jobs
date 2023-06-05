@@ -2,7 +2,6 @@
 using Akka.DependencyInjection;
 using Job.Core.Interfaces;
 using Job.Core.Services;
-using Job.Core.Theater.Master;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Job.Core;

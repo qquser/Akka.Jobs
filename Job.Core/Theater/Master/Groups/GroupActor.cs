@@ -2,6 +2,7 @@
 using Akka.DependencyInjection;
 using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries;
 using Job.Core.Theater.ActorQueries.Messages;
 using Job.Core.Theater.Master.Groups.Workers;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
@@ -30,9 +31,10 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
         Receive<Terminated>(ManagerActorTerminatedHandler);
     }
 
-    private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo obj)
+    private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
     {
-        throw new NotImplementedException();
+        Context.ActorOf(
+            WorkerGroupQuery<TOut>.Props(_managerActorToId, msg.RequestId, Sender, msg.Timeout));
     }
 
     private void ManagerActorTerminatedHandler(Terminated t)

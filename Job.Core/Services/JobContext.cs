@@ -3,8 +3,9 @@ using Akka.Actor;
 using Akka.DependencyInjection;
 using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries.Messages;
+using Job.Core.Theater.ActorQueries.Messages.States;
 using Job.Core.Theater.Master;
-using Job.Core.Theater.Master.Groups.Workers;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Services;
@@ -46,9 +47,12 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
             new StopJobCommand(jobId, GetGroupName()));
     }
 
-    public Task<TOut> GetCurrentStateAsync(Guid jobId)
+    public async Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllWorkersCurrentStateAsync(long requestId)
     {
-        throw new NotImplementedException();
+        var query = new RequestAllWorkersInfo(requestId, GetGroupName(), TimeSpan.FromSeconds(30));
+        RespondAllWorkersInfo<TOut> info = await _masterActor
+            .Ask<RespondAllWorkersInfo<TOut>>(query);
+        return info.WorkersData;
     }
     
     private string GetGroupName()

@@ -37,10 +37,10 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         throw msg?.Cause ?? throw new Exception("Unknown error, msg?.Cause == null");
     }
     
-    private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand _)
+    private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand command)
     {
         var currentState = _job.GetCurrentState(_jobId);
-        var result = new ReplyWorkerInfo<TOut>(currentState);
+        var result = new RespondWorkerInfo<TOut>(command.RequestId, currentState);
         Sender.Tell(result);
     }
     

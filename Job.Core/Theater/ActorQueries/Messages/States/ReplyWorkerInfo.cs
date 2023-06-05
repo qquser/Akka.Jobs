@@ -2,7 +2,7 @@
 
 namespace Job.Core.Theater.ActorQueries.Messages.States;
 
-internal sealed class ReplyWorkerInfo<TOut> 
+public sealed class ReplyWorkerInfo<TOut> 
     where TOut : IJobResult
 {
     public ReplyWorkerInfo(TOut result)

@@ -5,18 +5,21 @@ namespace Job.Core.Theater.ActorQueries.Messages.States;
 internal sealed class RespondWorkerInfo<TOut> 
     where TOut : IJobResult
 {
-    public RespondWorkerInfo(bool success, string errorMessage, TOut result)
+    public RespondWorkerInfo(long requestId,  TOut result)
     {
-        Success = success;
-        ErrorMessage = errorMessage;
+        RequestId = requestId;
+        Success = true;
+        RequestId = requestId;
+        ErrorMessage = "";
         Result = result;
     }
-    public RespondWorkerInfo(bool success, string errorMessage)
+    public RespondWorkerInfo(bool success, long requestId, string errorMessage)
     {
+        RequestId = requestId;
         Success = success;
         ErrorMessage = errorMessage;
     }
-    
+    public long RequestId { get; }
     public string ErrorMessage { get; }
     public bool Success { get; }
     public TOut? Result { get; }

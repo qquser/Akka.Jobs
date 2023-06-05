@@ -41,7 +41,9 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     {
         if (_workerSupervisorActor == null)
         {
-            Sender.Tell(new ReplyWorkerInfo<TOut>(false, "_workerSupervisorActor == null") );
+            Sender.Tell(new RespondWorkerInfo<TOut>(false,
+                command.RequestId, 
+                "_workerSupervisorActor == null") );
             return;
         }
         
