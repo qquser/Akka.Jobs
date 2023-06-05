@@ -17,11 +17,11 @@ public static class ServicesConfiguration
             var actorSystemSetup = BootstrapSetup.Create().And(di);
             return ActorSystem.Create("job-worker-system", actorSystemSetup);
         });
-        services.AddSingleton<IActorRef>(provider =>
-        {
-            var actorSystem = provider.GetService<ActorSystem>();
-            return actorSystem.ActorOf(Props.Create<MasterActor>());
-        });
+        // services.AddSingleton<IActorRef>(provider =>
+        // {
+        //     var actorSystem = provider.GetService<ActorSystem>();
+        //     return actorSystem.ActorOf(Props.Create<MasterActor>());
+        // });
         services.AddSingleton(typeof(IJobContext<,>), typeof(JobContext<,>));
     }
 }

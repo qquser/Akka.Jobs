@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries.Messages.States;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,7 +22,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         _scope = serviceProvider.CreateScope();
  
         Receive<Status.Failure>(Failed);
-        Receive<WorkerDoJobCommand>((msg) =>
+        Receive<WorkerDoJobCommand<TIn>>((msg) =>
         {
             DoJobCommandHandlerAsync(msg).PipeTo(Self);
         });
@@ -39,15 +40,16 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand _)
     {
         var currentState = _job.GetCurrentState(_jobId);
-        Sender.Tell(currentState);
+        var result = new ReplyWorkerInfo<TOut>(currentState);
+        Sender.Tell(result);
     }
     
-    private async Task DoJobCommandHandlerAsync(WorkerDoJobCommand command)
+    private async Task DoJobCommandHandlerAsync(WorkerDoJobCommand<TIn> command)
     {
         _jobId = command.JobId;
 
         var token = command.CancellationTokenSource.Token;
-        var jobResult = await _job.DoAsync((TIn)command.JobInput, token);
+        var jobResult = await _job.DoAsync(command.JobInput, token);
 
         command.DoJobCommandSender.Tell(token.IsCancellationRequested
             ? new JobCommandResult(false, "Job was cancelled.", command.JobId)

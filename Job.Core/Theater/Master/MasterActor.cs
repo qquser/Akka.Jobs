@@ -1,21 +1,42 @@
 ﻿using Akka.Actor;
+using Akka.DependencyInjection;
+using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries.Messages;
 using Job.Core.Theater.Master.Groups;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Theater.Master;
 
-internal class MasterActor : ReceiveActor
+internal class MasterActor<TIn, TOut> : ReceiveActor
+    where TIn : IJobInput
+    where TOut : IJobResult
 {
     private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
     private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
     
     public MasterActor()
     {
-        Receive<DoJobCommand>(StartJobCommandHandler);
+        //Commands
+        Receive<DoJobCommand<TIn>>(StartJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
         
+        //Queries
+        Receive<RequestAllWorkersInfo>(RequestAllWorkersInfoQueryHandler);
+        
+        //Internal
         Receive<Terminated>(GroupActorTerminatedHandler);
+    }
+
+    private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
+    {
+        if (_groupIdToActor.TryGetValue(msg.GroupId, out var groupActor))
+        {
+            groupActor.Forward(msg);
+            return;
+        }
+
+        Sender.Tell(new RespondAllWorkersInfo<TOut>(msg.RequestId));
     }
 
     private void StopJobCommandHandler(StopJobCommand command)
@@ -39,7 +60,7 @@ internal class MasterActor : ReceiveActor
         // LogActorState(text);
     }
     
-    private void StartJobCommandHandler(DoJobCommand command)
+    private void StartJobCommandHandler(DoJobCommand<TIn> command)
     {
         if (_groupIdToActor.TryGetValue(command.GroupName, out var actorRef))
         {
@@ -54,7 +75,12 @@ internal class MasterActor : ReceiveActor
             return;
         }
         
-        var groupActor = Context.ActorOf(GroupActor.Props(command.JobResultType), $"group-{command.JobResultType}");
+        var groupActorProps = DependencyResolver
+            .For(Context.System)
+            .Props(typeof(GroupActor<,>)
+                .MakeGenericType(typeof(TIn), typeof(TOut)));
+        
+        var groupActor = Context.ActorOf(groupActorProps, $"group-{command.GroupName}");
         Context.Watch(groupActor);
         groupActor.Forward(command);
         _groupIdToActor.Add(command.GroupName, groupActor);

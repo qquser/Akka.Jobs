@@ -1,6 +1,10 @@
+using System.Text.RegularExpressions;
 using Akka.Actor;
+using Akka.DependencyInjection;
 using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.Master;
+using Job.Core.Theater.Master.Groups.Workers;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Services;
@@ -9,31 +13,36 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private readonly IActorRef _jobContext;
+    private readonly IActorRef _masterActor;
     
-    public JobContext(IActorRef jobContext)
+    public JobContext(ActorSystem actorSystem)
     {
-        _jobContext = jobContext;
+        var masterActorProps = DependencyResolver
+            .For(actorSystem)
+            .Props(typeof(MasterActor<,>)
+                .MakeGenericType(typeof(TIn), typeof(TOut)));
+        var type = GetGroupName();
+        _masterActor = actorSystem.ActorOf(masterActorProps, $"master-{type}");;
     }
 
     public Guid CreateJob(TIn input,
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
         var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        _jobContext.Tell(command);
-        return command.JobId;//
+        _masterActor.Tell(command);
+        return command.JobId;//TODO возвращать Guid только после создания актора воркера
     }
 
     public async Task<JobCommandResult> DoJobAsync(TIn input, 
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
         var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return await _jobContext.Ask<JobCommandResult>(command);
+        return await _masterActor.Ask<JobCommandResult>(command);
     }
 
     public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
     {
-        return await _jobContext.Ask<StopJobCommandResult>(
+        return await _masterActor.Ask<StopJobCommandResult>(
             new StopJobCommand(jobId, GetGroupName()));
     }
 
@@ -44,21 +53,18 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     
     private string GetGroupName()
     {
-        var type = GetType().ToString();
-        return type;
+        return Regex.Replace(GetType().ToString(), @"[^\w\d]", "_");;
     }
     
-    private DoJobCommand GetDoJobCommand(TIn input,
+    private DoJobCommand<TIn> GetDoJobCommand(TIn input,
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
     {
         var id = jobId ?? Guid.NewGuid();
-        return new DoJobCommand(input,
-            typeof(TIn),
-            typeof(TOut),
+        return new DoJobCommand<TIn>(input,
             id,
             GetGroupName(),
             minBackoff ?? TimeSpan.FromSeconds(1),
             maxBackoff ?? TimeSpan.FromSeconds(3),
-            maxNrOfRetries ?? 4);
+            maxNrOfRetries ?? 5);
     }
 }

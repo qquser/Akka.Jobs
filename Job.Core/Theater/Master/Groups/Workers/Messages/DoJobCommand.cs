@@ -1,11 +1,11 @@
-﻿namespace Job.Core.Theater.Master.Groups.Workers.Messages;
+﻿using Job.Core.Interfaces;
 
-internal sealed class DoJobCommand
+namespace Job.Core.Theater.Master.Groups.Workers.Messages;
+
+internal sealed class DoJobCommand<TIn> where TIn : IJobInput
 {
     public DoJobCommand(
-        object jobInput, 
-        Type jobInputType,
-        Type jobResultType,
+        TIn jobInput,
         Guid jobId,
         string groupName,
         TimeSpan minBackoff,
@@ -13,8 +13,6 @@ internal sealed class DoJobCommand
         int maxNrOfRetries)
     {
         JobInput = jobInput;
-        JobInputType = jobInputType;
-        JobResultType = jobResultType;
         JobId = jobId;
         GroupName = groupName;
         MinBackoff = minBackoff;
@@ -22,10 +20,8 @@ internal sealed class DoJobCommand
         MaxNrOfRetries = maxNrOfRetries;
     }
     public string GroupName { get; }
-    public object JobInput { get; }
-    public Type JobInputType { get; }
+    public TIn JobInput { get; }
     public Guid JobId { get; }
-    public Type JobResultType { get; }
     public TimeSpan MinBackoff { get; }
     public TimeSpan MaxBackoff { get; }
     public int MaxNrOfRetries{ get; }

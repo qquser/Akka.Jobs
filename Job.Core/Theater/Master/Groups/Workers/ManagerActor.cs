@@ -1,12 +1,16 @@
 using Akka.Actor;
 using Akka.DependencyInjection;
 using Akka.Pattern;
+using Job.Core.Interfaces;
 using Job.Core.Models;
+using Job.Core.Theater.ActorQueries.Messages.States;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 
 namespace Job.Core.Theater.Master.Groups.Workers;
 
-internal class ManagerActor : ReceiveActor
+internal class ManagerActor<TIn, TOut> : ReceiveActor
+    where TIn : IJobInput
+    where TOut : IJobResult
 {
     private int _currentNrOfRetries;
     private int _maxNrOfRetries;
@@ -14,30 +18,33 @@ internal class ManagerActor : ReceiveActor
     private TimeSpan _maxBackoff;
     private IActorRef? _doJobCommandSender;
     private IActorRef? _workerSupervisorActor;
-    private WorkerDoJobCommand? _doJobCommand;
+    private WorkerDoJobCommand<TIn>? _doJobCommand;
     
-    private readonly Guid _jobId;
+    private Guid _jobId;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
-    public ManagerActor(Guid jobId)
+    public ManagerActor()
     {
-        _jobId = jobId;
-        
-        Receive<DoJobCommand>(StartJobCommandHandler);
+        //Commands
+        Receive<DoJobCommand<TIn>>(StartJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
         
-        Receive<GiveMeWorkerDoJobCommand>(GiveMeWorkerDoJobCommandHandler);
-        
+        //Queries
         Receive<ReadWorkerInfoCommand>(ReadWorkerInfoCommandHandler);
         
+        //Internal
+        Receive<GiveMeWorkerDoJobCommand>(GiveMeWorkerDoJobCommandHandler);
         Receive<Terminated>(WorkerActorTerminatedHandler);
     }
 
     private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand command)
     {
-        if (_workerSupervisorActor == null || command.JobId != _jobId)
+        if (_workerSupervisorActor == null)
+        {
+            Sender.Tell(new ReplyWorkerInfo<TOut>(false, "_workerSupervisorActor == null") );
             return;
-
+        }
+        
         _workerSupervisorActor.Forward(command);
     }
 
@@ -59,25 +66,25 @@ internal class ManagerActor : ReceiveActor
         Self.Tell(PoisonPill.Instance);
     }
 
-    private void StartJobCommandHandler(DoJobCommand doJobCommand)
+    private void StartJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (doJobCommand.JobId != _jobId || _workerSupervisorActor != null)
+        if (_workerSupervisorActor != null)
         {
             Sender.Tell(new JobCommandResult(false, "Ignoring Create Worker Actor", doJobCommand.JobId));
             return;
         }
 
+        _jobId = doJobCommand.JobId;
         _maxNrOfRetries = doJobCommand.MaxNrOfRetries;
         _minBackoff = doJobCommand.MinBackoff;
         _maxBackoff = doJobCommand.MaxBackoff;
         _doJobCommandSender = Sender;
 
-        var dependencyResolver = DependencyResolver.For(Context.System);
-        var workerActorType = typeof(WorkerActor<,>)
-            .MakeGenericType(doJobCommand.JobInputType, doJobCommand.JobResultType);
-        var workerActorProps = dependencyResolver
-            .Props(workerActorType);
-        
+        var workerActorProps = DependencyResolver
+            .For(Context.System)
+            .Props(typeof(WorkerActor<,>)
+                .MakeGenericType(typeof(TIn), typeof(TOut)));
+
         var supervisorOfWorkerActorProps = BackoffSupervisor.Props(
             Backoff.OnFailure(
                     workerActorProps,
@@ -88,29 +95,29 @@ internal class ManagerActor : ReceiveActor
                     maxNrOfRetries: _maxNrOfRetries)
                 .WithSupervisorStrategy(new OneForOneStrategy(exception =>
                 {
-                    if (_currentNrOfRetries < _maxNrOfRetries)
+                    if (exception is TaskCanceledException 
+                        || exception.InnerException is TaskCanceledException
+                        || _currentNrOfRetries >= _maxNrOfRetries)
                     {
-                        _currentNrOfRetries += 1;
-                        return Directive.Restart;
+                        var text = $"BackoffSupervisor: jobId: {_jobId}" +
+                                   $" {exception?.Message}" +
+                                   $" InnerException: {exception?.InnerException?.Message}";
+                        _doJobCommandSender.Tell(new JobCommandResult(false, text, _jobId));
+                        return Directive.Stop;
                     }
 
-                    var text = $"BackoffSupervisor: jobId: {_jobId}" +
-                               $" {exception?.Message}" +
-                               $" InnerException: {exception?.InnerException?.Message}";
-                    _doJobCommandSender.Tell(new JobCommandResult(false, text, _jobId));
-                    return Directive.Stop;
+                    _currentNrOfRetries += 1;
+                    return Directive.Restart;
                 })));
         _workerSupervisorActor = Context
             .ActorOf(supervisorOfWorkerActorProps, $"supervisor-of-worker-{doJobCommand.JobId}");
   
         Context.Watch(_workerSupervisorActor);
         
-        _doJobCommand = new WorkerDoJobCommand(
+        _doJobCommand = new WorkerDoJobCommand<TIn>(
             doJobCommand.JobInput,
-            doJobCommand.JobInputType,
             _doJobCommandSender, 
-            doJobCommand.JobId, 
-            doJobCommand.JobResultType,
+            doJobCommand.JobId,
             _cancellationTokenSource);
     }
     
@@ -126,8 +133,4 @@ internal class ManagerActor : ReceiveActor
             withinTimeRange: TimeSpan.FromMilliseconds(-1),
             localOnlyDecider: ex => Directive.Stop);
     }
-    
-    public static Props Props(Guid jobId) =>
-        Akka.Actor.Props.Create(() => new ManagerActor(jobId));
-    
 }
