@@ -1,5 +1,5 @@
 .idea
 .vs
 bin
-/Job.Console/obj
 obj
+*.user

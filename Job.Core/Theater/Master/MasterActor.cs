@@ -18,7 +18,7 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
     public MasterActor()
     {
         //Commands
-        Receive<DoJobCommand<TIn>>(StartJobCommandHandler);
+        Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
         
         //Queries
@@ -55,12 +55,9 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
         var groupId = _actorToGroupId[t.ActorRef];
         _actorToGroupId.Remove(t.ActorRef);
         _groupIdToActor.Remove(groupId);
-        
-        // var text = $"Group actor for {groupId} has been terminated";
-        // LogActorState(text);
     }
     
-    private void StartJobCommandHandler(DoJobCommand<TIn> command)
+    private void DoJobCommandHandler(DoJobCommand<TIn> command)
     {
         if (_groupIdToActor.TryGetValue(command.GroupName, out var actorRef))
         {
@@ -77,8 +74,7 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
         
         var groupActorProps = DependencyResolver
             .For(Context.System)
-            .Props(typeof(GroupActor<,>)
-                .MakeGenericType(typeof(TIn), typeof(TOut)));
+            .Props<GroupActor<TIn,TOut>>();
         
         var groupActor = Context.ActorOf(groupActorProps, $"group-{command.GroupName}");
         Context.Watch(groupActor);

@@ -1,10 +1,12 @@
-﻿using Akka.Actor;
+﻿using System.Runtime.CompilerServices;
+using Akka.Actor;
 using Job.Core.Interfaces;
 using Job.Core.Models;
 using Job.Core.Theater.ActorQueries.Messages.States;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
+[assembly:InternalsVisibleTo("Job.Tests")]
 namespace Job.Core.Theater.Master.Groups.Workers;
 
 internal class WorkerActor<TIn, TOut> : ReceiveActor

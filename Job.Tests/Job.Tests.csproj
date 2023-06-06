@@ -7,7 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="JobTests\" />
+      <PackageReference Include="Akka.TestKit" Version="1.5.7" />
+      <PackageReference Include="Akka.TestKit.Xunit2" Version="1.5.7" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+      <PackageReference Include="xunit" Version="2.4.2" />
+      <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Job.Core\Job.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+        <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\7.0.1\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

@@ -104,8 +104,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
 
         var workerActorProps = DependencyResolver
             .For(Context.System)
-            .Props(typeof(WorkerActor<,>)
-                .MakeGenericType(typeof(TIn), typeof(TOut)));
+            .Props<WorkerActor<TIn,TOut>>();
 
         var supervisorOfWorkerActorProps = BackoffSupervisor.Props(
             Backoff.OnFailure(

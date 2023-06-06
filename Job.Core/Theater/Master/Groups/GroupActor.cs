@@ -24,7 +24,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
     public GroupActor()
     {
         //Commands
-        Receive<DoJobCommand<TIn>>(StartJobCommandHandler);
+        Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
 
         //Queries
@@ -69,7 +69,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
         _idToManagerActor[command.JobId].Forward(command);
     }
 
-    private void StartJobCommandHandler(DoJobCommand<TIn> doJobCommand)
+    private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
         if (_groupId != null && doJobCommand.GroupName != _groupId)
         {
@@ -87,8 +87,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
 
         var managerActorProps = DependencyResolver
             .For(Context.System)
-            .Props(typeof(ManagerActor<,>)
-                .MakeGenericType(typeof(TIn), typeof(TOut)));
+            .Props<ManagerActor<TIn,TOut>>();
         
         var managerActor = Context.ActorOf(managerActorProps, $"manager-{doJobCommand.JobId}");
 

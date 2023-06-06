@@ -25,8 +25,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var masterActorProps = DependencyResolver
             .For(actorSystem)
-            .Props(typeof(MasterActor<,>)
-                .MakeGenericType(typeof(TIn), typeof(TOut)));
+            .Props<MasterActor<TIn,TOut>>();
         var type = GetGroupName();
         _masterActor = actorSystem.ActorOf(masterActorProps, $"master-{type}");;
     }
