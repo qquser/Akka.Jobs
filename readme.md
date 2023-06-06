@@ -9,6 +9,7 @@ Runs background Jobs.
 - Get the current state of a running Job by JobId.
 - Stop a running Job.
 - The DI scope for the Job.
+- Has the ability to set the number of restarts in case of an error.
 
 In the Program.cs file, register the Job interface and the Job Context for your ...Job class.
 
