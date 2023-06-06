@@ -3,12 +3,12 @@ Akka.NET Jobs.
 
 ### How to use.
 
-Used to run background tasks.
+Runs background Jobs.
 
-- It is possible to run the Jobs in the background and get its ID.
-- It is possible to refer to the state of the running Job.
-- It is possible to stop a running Job.
-- The Di scope for the Job is launched
+- Run the Jobs in the background and get its ID.
+- Get the current state of a running Job by JobId.
+- Stop a running Job.
+- The DI scope for the Job.
 
 In the Program.cs file, register the Job interface and the Job Context for your ...Job class.
 
@@ -30,7 +30,7 @@ public interface IJob<in TIn, out TOut>
 }
 ```
 
-For example, the implementation of IJob for ForEachJob, which simply iterates through the values from 0 to Count in a loop
+For example, the implementation of IJob for ForEachJob, which simply iterates through the values from 0 to Count in a loop.
 
 ```csharp
 public class ForEachJob : IJob<TestJobInput, TestJobResult>
