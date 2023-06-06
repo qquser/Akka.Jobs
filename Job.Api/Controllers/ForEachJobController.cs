@@ -41,7 +41,7 @@ public class ForEachJobController : ControllerBase
     public async Task<ICollection<TestJobResult?>> GetAllJobs()
     {
         var result = await _jobContext
-            .GetAllWorkersCurrentStateAsync(0);
+            .GetAllJobsCurrentStatesAsync(0);
         return result.Values.Select(x=>x.Result).ToList();
     }
 }
@@ -49,6 +49,13 @@ public class ForEachJobController : ControllerBase
 public class ForEachJob : IJob<TestJobInput, TestJobResult>
 {
     private int _currentState;
+
+    private readonly ILogger<ForEachJob> _logger;
+    public ForEachJob(ILogger<ForEachJob> logger)
+    {
+        _logger = logger;
+    }
+    
     public async Task<bool> DoAsync(TestJobInput input, CancellationToken token)
     {
         foreach (var item in Enumerable.Range(0, input.Count))
@@ -56,7 +63,7 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
             if (token.IsCancellationRequested)
                 return false;
             _currentState = item;
-            Console.WriteLine($"Job {item}");
+            _logger.LogInformation(item.ToString());
             await Task.Delay(1000, token);
         }
 

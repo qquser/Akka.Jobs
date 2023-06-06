@@ -16,6 +16,11 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
 {
     private readonly IActorRef _masterActor;
     
+    private readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(30);
+    private readonly int _defaultMaxNrOfRetries = 5;
+    private readonly TimeSpan _defaultMinBackoff = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _defaultMaxBackoff =  TimeSpan.FromSeconds(3);
+    
     public JobContext(ActorSystem actorSystem)
     {
         var masterActorProps = DependencyResolver
@@ -27,31 +32,44 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     }
 
     public Guid CreateJob(TIn input,
-        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
+        int? maxNrOfRetries = null,
+        TimeSpan? minBackoff = null,
+        TimeSpan? maxBackoff = null, 
+        Guid? jobId = null,
+        TimeSpan? timeout = null)
     {
+        var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
         _masterActor.Tell(command);
-        return command.JobId;//TODO возвращать Guid только после создания актора воркера
+        return command.JobId;
     }
 
     public async Task<JobCommandResult> DoJobAsync(TIn input, 
-        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null)
+        int? maxNrOfRetries = null, 
+        TimeSpan? minBackoff = null,
+        TimeSpan? maxBackoff = null, 
+        Guid? jobId = null,
+        TimeSpan? timeout = null)
     {
+        var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return await _masterActor.Ask<JobCommandResult>(command);
+        return await _masterActor.Ask<JobCommandResult>(command, currentTimeout);
     }
 
-    public async Task<StopJobCommandResult> StopJobAsync(Guid jobId)
+    public async Task<StopJobCommandResult> StopJobAsync(Guid jobId, TimeSpan? timeout = null)
     {
+        var currentTimeout = timeout ?? _defaultTimeout;
         return await _masterActor.Ask<StopJobCommandResult>(
-            new StopJobCommand(jobId, GetGroupName()));
+            new StopJobCommand(jobId, GetGroupName()), currentTimeout);
     }
 
-    public async Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllWorkersCurrentStateAsync(long requestId)
+    public async Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllJobsCurrentStatesAsync(long requestId,
+        TimeSpan? timeout = null)
     {
-        var query = new RequestAllWorkersInfo(requestId, GetGroupName(), TimeSpan.FromSeconds(30));
+        var currentTimeout = timeout ?? _defaultTimeout;
+        var query = new RequestAllWorkersInfo(requestId, GetGroupName(), currentTimeout);
         RespondAllWorkersInfo<TOut> info = await _masterActor
-            .Ask<RespondAllWorkersInfo<TOut>>(query);
+            .Ask<RespondAllWorkersInfo<TOut>>(query, currentTimeout);
         return info.WorkersData;
     }
     
@@ -67,8 +85,8 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         return new DoJobCommand<TIn>(input,
             id,
             GetGroupName(),
-            minBackoff ?? TimeSpan.FromSeconds(1),
-            maxBackoff ?? TimeSpan.FromSeconds(3),
-            maxNrOfRetries ?? 5);
+            minBackoff ?? _defaultMinBackoff,
+            maxBackoff ?? _defaultMaxBackoff,
+            maxNrOfRetries ?? _defaultMaxNrOfRetries);
     }
 }

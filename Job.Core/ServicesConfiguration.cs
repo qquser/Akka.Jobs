@@ -13,14 +13,10 @@ public static class ServicesConfiguration
         services.AddSingleton(provider =>
         {
             var di = DependencyResolverSetup.Create(provider);
-            var actorSystemSetup = BootstrapSetup.Create().And(di);
+            var actorSystemSetup = BootstrapSetup.Create()
+                .And(di);
             return ActorSystem.Create("job-worker-system", actorSystemSetup);
         });
-        // services.AddSingleton<IActorRef>(provider =>
-        // {
-        //     var actorSystem = provider.GetService<ActorSystem>();
-        //     return actorSystem.ActorOf(Props.Create<MasterActor>());
-        // });
         services.AddSingleton(typeof(IJobContext<,>), typeof(JobContext<,>));
     }
 }

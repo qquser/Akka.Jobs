@@ -12,15 +12,15 @@ public interface IJobContext<in TIn, TOut>
     /// </summary>
     /// <returns>Job Id</returns>
     Guid CreateJob(TIn input, 
-        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null);
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null, TimeSpan? timeout = null);
     
     /// <summary>
     /// Waiting for a response about the completion of the job
     /// </summary>
     Task<JobCommandResult> DoJobAsync(TIn input,
-        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null);
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null, TimeSpan? timeout = null);
     
-    Task<StopJobCommandResult> StopJobAsync(Guid jobId);
+    Task<StopJobCommandResult> StopJobAsync(Guid jobId, TimeSpan? timeout = null);
     
-    Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllWorkersCurrentStateAsync(long requestId);
+    Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllJobsCurrentStatesAsync(long requestId, TimeSpan? timeout = null);
 }

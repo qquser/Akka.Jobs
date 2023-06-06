@@ -20,14 +20,18 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     public WorkerActor(IServiceProvider serviceProvider)
     {
         _scope = serviceProvider.CreateScope();
- 
-        Receive<Status.Failure>(Failed);
+        
+        //Commands
         Receive<WorkerDoJobCommand<TIn>>((msg) =>
         {
-            DoJobCommandHandlerAsync(msg).PipeTo(Self);
+            WorkerDoJobCommandHandlerAsync(msg).PipeTo(Self);
         });
         
+        //Queries
         Receive<ReadWorkerInfoCommand>(ReadWorkerInfoCommandHandler);
+        
+        //Internal
+        Receive<Status.Failure>(Failed);
         
         Context.Parent.Tell(new GiveMeWorkerDoJobCommand());
     }
@@ -44,7 +48,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         Sender.Tell(result);
     }
     
-    private async Task DoJobCommandHandlerAsync(WorkerDoJobCommand<TIn> command)
+    private async Task WorkerDoJobCommandHandlerAsync(WorkerDoJobCommand<TIn> command)
     {
         _jobId = command.JobId;
         Context.Parent.Tell(new TrySaveWorkerActorRefCommand(Self, _jobId, command.DoJobCommandSender));

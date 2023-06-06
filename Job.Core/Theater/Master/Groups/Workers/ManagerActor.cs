@@ -27,7 +27,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     public ManagerActor()
     {
         //Commands
-        Receive<DoJobCommand<TIn>>(StartJobCommandHandler);
+        Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
         
         //Queries
@@ -88,7 +88,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
         Self.Tell(PoisonPill.Instance);
     }
 
-    private void StartJobCommandHandler(DoJobCommand<TIn> doJobCommand)
+    private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
         if (_workerSupervisorActor != null)
         {
