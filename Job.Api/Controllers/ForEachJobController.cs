@@ -18,14 +18,14 @@ public class ForEachJobController : ControllerBase
     
     [HttpPost]
     [Route(nameof(CreateJob))]
-    public Guid CreateJob([FromBody] ForEachJobInput input)
+    public async Task<JobCreatedCommandResult> CreateJob([FromBody] ForEachJobInput input)
     {
-        return _jobContext.CreateJob(input);
+        return await _jobContext.CreateJobAsync(input);
     }
     
     [HttpPost]
     [Route(nameof(DoJob))]
-    public async Task<JobCommandResult> DoJob([FromBody] ForEachJobInput input)
+    public async Task<JobDoneCommandResult> DoJob([FromBody] ForEachJobInput input)
     {
         return await _jobContext.DoJobAsync(input);
     }

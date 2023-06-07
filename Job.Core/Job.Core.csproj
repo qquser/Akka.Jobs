@@ -11,4 +11,10 @@
       <PackageReference Include="Akka.DependencyInjection" Version="1.5.7" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+        <HintPath>..\..\..\.dotnet\shared\Microsoft.AspNetCore.App\7.0.5\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

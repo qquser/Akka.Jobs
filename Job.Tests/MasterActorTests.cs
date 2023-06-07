@@ -18,7 +18,8 @@ public class MasterActorTests : TestKit
             "Test",
             TimeSpan.FromSeconds(1),
             TimeSpan.FromSeconds(3),
-            0);
+            0,
+            false);
     }
     [Fact]
     public void MasterActor_ShouldTell_WhenSimpleTest()
@@ -30,7 +31,7 @@ public class MasterActorTests : TestKit
         var input = new TestForEachJobInput { Count = 1};
         masterActor.Tell(GetDoJobCommand(input), probe.Ref); 
 
-        var result = probe.ExpectMsg<JobCommandResult>(TimeSpan.FromSeconds(3));
+        var result = probe.ExpectMsg<JobDoneCommandResult>(TimeSpan.FromSeconds(3));
         
         Assert.True(result.Success);
     }

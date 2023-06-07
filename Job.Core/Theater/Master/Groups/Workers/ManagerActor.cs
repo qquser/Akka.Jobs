@@ -5,6 +5,7 @@ using Job.Core.Interfaces;
 using Job.Core.Models;
 using Job.Core.Theater.ActorQueries.Messages.States;
 using Job.Core.Theater.Master.Groups.Workers.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace Job.Core.Theater.Master.Groups.Workers;
 
@@ -24,8 +25,11 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     private bool _startedFlag = false;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
-    public ManagerActor()
+    private readonly ILogger<ManagerActor<TIn, TOut>> _logger;
+    
+    public ManagerActor(ILogger<ManagerActor<TIn, TOut>> logger)
     {
+        _logger = logger;
         //Commands
         Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
@@ -46,7 +50,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
             var groupActor = Context.Parent;
             if ((groupActor is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
-                _doJobCommandSender.Tell(new JobCommandResult(false, 
+                _doJobCommandSender.Tell(new JobDoneCommandResult(false, 
                     "TrySaveWorkerActorRefCommand Failed. IsTerminated == true. Group Actor has been terminated.",
                     _jobId));
                 return;
@@ -96,7 +100,10 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     {
         if (_workerSupervisorActor != null)
         {
-            Sender.Tell(new JobCommandResult(false, "Ignoring Create Worker Actor", doJobCommand.JobId));
+            var message = "Ignoring Create Worker Actor";
+            Sender.Tell(doJobCommand.IsCreateCommand
+                ? new JobCreatedCommandResult(false, message, doJobCommand.JobId)
+                : new JobDoneCommandResult(false, message, doJobCommand.JobId));
             return;
         }
 
@@ -127,7 +134,8 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
                         var text = $"BackoffSupervisor: jobId: {_jobId}" +
                                    $" {exception?.Message}" +
                                    $" InnerException: {exception?.InnerException?.Message}";
-                        _doJobCommandSender.Tell(new JobCommandResult(false, text, _jobId));
+                        _logger.LogError(text);
+                        _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, _jobId));
                         return Directive.Stop;
                     }
 
@@ -143,7 +151,11 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
             doJobCommand.JobInput,
             _doJobCommandSender, 
             doJobCommand.JobId,
-            _cancellationTokenSource);
+            _cancellationTokenSource,
+            doJobCommand.IsCreateCommand);
+        
+        if(doJobCommand.IsCreateCommand)
+            _doJobCommandSender.Tell(new JobCreatedCommandResult(true, "", _jobId));
     }
     
     protected override void PostStop()

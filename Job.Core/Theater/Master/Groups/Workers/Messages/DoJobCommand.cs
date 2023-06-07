@@ -10,7 +10,8 @@ internal sealed class DoJobCommand<TIn> where TIn : IJobInput
         string groupName,
         TimeSpan minBackoff,
         TimeSpan maxBackoff,
-        int maxNrOfRetries)
+        int maxNrOfRetries,
+        bool isCreateCommand)
     {
         JobInput = jobInput;
         JobId = jobId;
@@ -18,7 +19,9 @@ internal sealed class DoJobCommand<TIn> where TIn : IJobInput
         MinBackoff = minBackoff;
         MaxBackoff = maxBackoff;
         MaxNrOfRetries = maxNrOfRetries;
+        IsCreateCommand = isCreateCommand;
     }
+    public bool IsCreateCommand { get; }
     public string GroupName { get; }
     public TIn JobInput { get; }
     public Guid JobId { get; }

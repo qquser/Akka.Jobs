@@ -11,13 +11,13 @@ public interface IJobContext<in TIn, TOut>
     /// Create a background job
     /// </summary>
     /// <returns>Job Id</returns>
-    Guid CreateJob(TIn input, 
+    Task<JobCreatedCommandResult> CreateJobAsync(TIn input,
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null, TimeSpan? timeout = null);
     
     /// <summary>
     /// Waiting for a response about the completion of the job
     /// </summary>
-    Task<JobCommandResult> DoJobAsync(TIn input,
+    Task<JobDoneCommandResult> DoJobAsync(TIn input,
         int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  Guid? jobId = null, TimeSpan? timeout = null);
     
     Task<StopJobCommandResult> StopJobAsync(Guid jobId, TimeSpan? timeout = null);

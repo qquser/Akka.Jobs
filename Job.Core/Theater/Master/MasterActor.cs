@@ -57,18 +57,21 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
         _groupIdToActor.Remove(groupId);
     }
     
-    private void DoJobCommandHandler(DoJobCommand<TIn> command)
+    private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (_groupIdToActor.TryGetValue(command.GroupName, out var actorRef))
+        if (_groupIdToActor.TryGetValue(doJobCommand.GroupName, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
-                Sender.Tell(new JobCommandResult(false, 
-                    "IsTerminated == true. Group Actor has been terminated.", command.JobId));
+                var message = "Group Actor has been terminated.";
+                Sender.Tell(doJobCommand.IsCreateCommand
+                    ? new JobCreatedCommandResult(false, message, doJobCommand.JobId)
+                    : new JobDoneCommandResult(false, message, doJobCommand.JobId));
+
                 return;
             }
 
-            actorRef.Forward(command);
+            actorRef.Forward(doJobCommand);
             return;
         }
         
@@ -76,11 +79,11 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
             .For(Context.System)
             .Props<GroupActor<TIn,TOut>>();
         
-        var groupActor = Context.ActorOf(groupActorProps, $"group-{command.GroupName}");
+        var groupActor = Context.ActorOf(groupActorProps, $"group-{doJobCommand.GroupName}");
         Context.Watch(groupActor);
-        groupActor.Forward(command);
-        _groupIdToActor.Add(command.GroupName, groupActor);
-        _actorToGroupId.Add(groupActor, command.GroupName);
+        groupActor.Forward(doJobCommand);
+        _groupIdToActor.Add(doJobCommand.GroupName, groupActor);
+        _actorToGroupId.Add(groupActor, doJobCommand.GroupName);
     }
     
     protected override SupervisorStrategy SupervisorStrategy()

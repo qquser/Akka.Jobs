@@ -73,13 +73,19 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
     {
         if (_groupId != null && doJobCommand.GroupName != _groupId)
         {
-            Sender.Tell(new JobCommandResult(false, "Ignoring Create Worker Actor", doJobCommand.JobId));
+            var message = "Ignoring Create Worker Actor";
+            Sender.Tell(doJobCommand.IsCreateCommand
+                    ? new JobCreatedCommandResult(false, message, doJobCommand.JobId)
+                    : new JobDoneCommandResult(false, message, doJobCommand.JobId));
             return;
         }
 
         if (_idToManagerActor.ContainsKey(doJobCommand.JobId))
         {
-            Sender.Tell(new JobCommandResult(false, $"{doJobCommand.JobId} Actor Exists.", doJobCommand.JobId));
+            var message = $"{doJobCommand.JobId} Actor Exists.";
+            Sender.Tell(doJobCommand.IsCreateCommand
+                ? new JobCreatedCommandResult(false, message, doJobCommand.JobId)
+                : new JobDoneCommandResult(false, message, doJobCommand.JobId));
             return;
         }
 

@@ -10,13 +10,16 @@ internal sealed class WorkerDoJobCommand<TIn>
         TIn jobInput,
         IActorRef doJobCommandSender, 
         Guid jobId,
-        CancellationTokenSource cancellationTokenSource)
+        CancellationTokenSource cancellationTokenSource,
+        bool isCreateCommand)
     {
+        IsCreateCommand = isCreateCommand;
         JobId = jobId;
         CancellationTokenSource = cancellationTokenSource;
         DoJobCommandSender = doJobCommandSender;
         JobInput = jobInput;
     }
+    public bool IsCreateCommand { get; }
     public TIn JobInput { get; }
     public IActorRef DoJobCommandSender { get; }
     public Guid JobId { get; }
