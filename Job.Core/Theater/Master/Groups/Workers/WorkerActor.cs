@@ -57,6 +57,9 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         _jobId = command.JobId;
         Context.Parent.Tell(new TrySaveWorkerActorRefCommand(Self, _jobId, command.DoJobCommandSender));
         
+        if(command.IsCreateCommand)
+            command.DoJobCommandSender.Tell(new JobCreatedCommandResult(true, "", _jobId));
+        
         var token = command.CancellationTokenSource.Token;
         var jobResult = await _job.DoAsync(command.JobInput, token);
 

@@ -153,9 +153,6 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
             doJobCommand.JobId,
             _cancellationTokenSource,
             doJobCommand.IsCreateCommand);
-        
-        if(doJobCommand.IsCreateCommand)
-            _doJobCommandSender.Tell(new JobCreatedCommandResult(true, "", _jobId));
     }
     
     protected override void PostStop()
