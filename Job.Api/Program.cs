@@ -1,5 +1,4 @@
-using Job.Api.Controllers;
-using Job.Api.JobExamples.SimpeLoop;
+using Job.Api.JobExamples.SimpleLoop;
 using Job.Core;
 using Job.Core.Interfaces;
 

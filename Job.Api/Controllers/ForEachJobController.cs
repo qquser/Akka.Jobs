@@ -1,4 +1,4 @@
-﻿using Job.Api.JobExamples.SimpeLoop;
+﻿using Job.Api.JobExamples.SimpleLoop;
 using Job.Core.Interfaces;
 using Job.Core.Models;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,6 @@
 using Job.Core.Interfaces;
 
-namespace Job.Api.JobExamples.SimpeLoop;
+namespace Job.Api.JobExamples.SimpleLoop;
 
 public class ForEachJobResult : IJobResult
 {
