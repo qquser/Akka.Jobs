@@ -15,8 +15,4 @@
       <ProjectReference Include="..\Job.Core\Job.Core.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="JobExamples\DownloadFile\" />
-    </ItemGroup>
-
 </Project>

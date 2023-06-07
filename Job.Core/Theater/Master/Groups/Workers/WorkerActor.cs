@@ -16,17 +16,19 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     private Guid _jobId;
 
     private readonly IServiceScope _scope;
+    private readonly IActorRef _self;
     
     private IJob<TIn, TOut> _job;
 
     public WorkerActor(IServiceProvider serviceProvider)
     {
+        _self = Self;
         _scope = serviceProvider.CreateScope();
         
         //Commands
         Receive<WorkerDoJobCommand<TIn>>((msg) =>
         {
-            WorkerDoJobCommandHandlerAsync(msg).PipeTo(Self);
+            WorkerDoJobCommandHandlerAsync(msg).PipeTo(_self);
         });
         
         //Queries
@@ -66,7 +68,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
             return;
         }
         command.DoJobCommandSender.Tell(new JobCommandResult(jobResult, "Ok", command.JobId));
-        Self.Tell(PoisonPill.Instance);
+        _self.Tell(PoisonPill.Instance);
     }
 
     protected override void PreStart()
