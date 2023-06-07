@@ -58,10 +58,14 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         var token = command.CancellationTokenSource.Token;
         var jobResult = await _job.DoAsync(command.JobInput, token);
 
-        command.DoJobCommandSender.Tell(token.IsCancellationRequested
-            ? new JobCommandResult(false, "Job was cancelled.", command.JobId)
-            : new JobCommandResult(jobResult, "Ok", command.JobId));
-        
+        if(token.IsCancellationRequested)
+        {
+            command.DoJobCommandSender.Tell(new JobCommandResult(false, 
+                "Job was cancelled.", 
+                command.JobId));
+            return;
+        }
+        command.DoJobCommandSender.Tell(new JobCommandResult(jobResult, "Ok", command.JobId));
         Self.Tell(PoisonPill.Instance);
     }
 

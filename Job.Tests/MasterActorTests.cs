@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.TestKit;
 using Akka.TestKit.Xunit2;
 using Job.Core.Models;
 using Job.Core.Theater.Master;

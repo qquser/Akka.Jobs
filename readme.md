@@ -15,7 +15,7 @@ In the Program.cs file, register the Job interface and the Job Context for your 
 
 ```csharp
 //Job library registration
-builder.Services.AddScoped<IJob<TestJobInput, TestJobResult>, ForEachJob>();
+builder.Services.AddScoped<IJob<ForEachJobInput, ForEachJobResult>, ForEachJob>();
 builder.Services.AddJobContext();
 ```
 
@@ -34,7 +34,7 @@ public interface IJob<in TIn, out TOut>
 For example, the implementation of IJob for ForEachJob, which simply iterates through the values from 0 to Count in a loop.
 
 ```csharp
-public class ForEachJob : IJob<TestJobInput, TestJobResult>
+public class ForEachJob : IJob<ForEachJobInput, ForEachJobResult>
 {
     private int _currentState;
 
@@ -45,7 +45,7 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
         _logger = logger;
     }
     
-    public async Task<bool> DoAsync(TestJobInput input, CancellationToken token)
+    public async Task<bool> DoAsync(ForEachJobInput input, CancellationToken token)
     {
         foreach (var item in Enumerable.Range(0, input.Count))
         {
@@ -60,9 +60,9 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
     }
 
     //Describes the state of the fields of the IJob class that are changed by the DoAsync method.
-    public TestJobResult GetCurrentState(Guid jobId)
+    public ForEachJobResult GetCurrentState(Guid jobId)
     {
-        return new TestJobResult
+        return new ForEachJobResult
         {
             Id = jobId,
             Data = _currentState
@@ -70,12 +70,12 @@ public class ForEachJob : IJob<TestJobInput, TestJobResult>
     }
 }
 
-public class TestJobInput : IJobInput
+public class ForEachJobInput : IJobInput
 {
     public int Count { get; set; }
 }
 
-public class TestJobResult : IJobResult
+public class ForEachJobResult : IJobResult
 {
     public Guid Id { get; set; }
     public int Data { get; set; }
@@ -111,23 +111,23 @@ public interface IJobContext<in TIn, TOut>
 Controller
 
 ```csharp
-    private readonly IJobContext<TestJobInput, TestJobResult> _jobContext;
+    private readonly IJobContext<ForEachJobInput, ForEachJobResult> _jobContext;
     
-    public ForEachJobController(IJobContext<TestJobInput, TestJobResult> jobContext)
+    public ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult> jobContext)
     {
         _jobContext = jobContext;
     }
     
     [HttpPost]
     [Route(nameof(CreateJob))]
-    public Guid CreateJob([FromBody] TestJobInput input)
+    public Guid CreateJob([FromBody] ForEachJobInput input)
     {
         return _jobContext.CreateJob(input); //Immediately returns the ID of a background task
     }
     
     [HttpGet]
     [Route(nameof(GetAllJobs))]
-    public async Task<ICollection<TestJobResult?>> GetAllJobs([FromQuery] int requestId)
+    public async Task<ICollection<ForEachJobResult?>> GetAllJobs([FromQuery] int requestId)
     {
         var result = await _jobContext
             .GetAllJobsCurrentStatesAsync(requestId);

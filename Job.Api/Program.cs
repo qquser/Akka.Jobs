@@ -1,4 +1,5 @@
 using Job.Api.Controllers;
+using Job.Api.JobExamples.SimpeLoop;
 using Job.Core;
 using Job.Core.Interfaces;
 
@@ -8,7 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Job library registration
-builder.Services.AddScoped<IJob<TestJobInput, TestJobResult>, ForEachJob>();
+builder.Services.AddScoped<IJob<ForEachJobInput, ForEachJobResult>, ForEachJob>();
 builder.Services.AddJobContext();
 
 

@@ -77,10 +77,14 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand _)
     {
-        _cancellationTokenSource.Cancel();
-        Sender.Tell(new StopJobCommandResult(true, "Ok"));
-        //Self.Tell(PoisonPill.Instance) is not called here
-            //because the death of the actor does not stop the thread _job.DoJob
+        if (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            _cancellationTokenSource.Cancel();
+            _workerSupervisorActor.Tell(PoisonPill.Instance);
+            Sender.Tell(new StopJobCommandResult(true, "Ok"));
+            return;
+        }
+        Sender.Tell(new StopJobCommandResult(false, "Cancellation Requested Already."));
     }
     
     private void WorkerActorTerminatedHandler(Terminated t)

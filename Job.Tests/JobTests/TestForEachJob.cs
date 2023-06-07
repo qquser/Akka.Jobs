@@ -1,5 +1,4 @@
 ﻿using Job.Core.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Job.Tests.JobTests;
 
