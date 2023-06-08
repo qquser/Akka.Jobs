@@ -1,4 +1,4 @@
-﻿using Job.Core.Interfaces;
+﻿using Akka.Jobs.Interfaces;
 
 namespace Job.Tests.JobTests;
 

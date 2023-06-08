@@ -1,5 +1,5 @@
-using Job.Core;
-using Job.Core.Interfaces;
+using Akka.Jobs;
+using Akka.Jobs.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,6 +1,6 @@
 ﻿using Job.Api.JobExamples.SimpleLoop;
-using Job.Core.Interfaces;
-using Job.Core.Models;
+using Akka.Jobs.Interfaces;
+using Akka.Jobs.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Job.Api.Controllers;

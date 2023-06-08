@@ -1,9 +1,9 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
 using Akka.TestKit.Xunit2;
-using Job.Core.Models;
-using Job.Core.Theater.Master;
-using Job.Core.Theater.Master.Groups.Workers.Messages;
+using Akka.Jobs.Models;
+using Akka.Jobs.Theater.Master;
+using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 using Job.Tests.JobTests;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

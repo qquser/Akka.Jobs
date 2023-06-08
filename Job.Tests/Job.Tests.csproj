@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Job.Core\Job.Core.csproj" />
+      <ProjectReference Include="..\Akka.Jobs\Akka.Jobs.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,6 +1,6 @@
 using Job.Api.JobExamples.SimpleLoop;
-using Job.Core;
-using Job.Core.Interfaces;
+using Akka.Jobs;
+using Akka.Jobs.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();

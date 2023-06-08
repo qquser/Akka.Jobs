@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Core", "Job.Core\Job.Core.csproj", "{A8C33E8A-67AD-4DE4-B88C-4B18B2F2A160}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Jobs", "Akka.Jobs\Akka.Jobs.csproj", "{A8C33E8A-67AD-4DE4-B88C-4B18B2F2A160}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Tests", "Job.Tests\Job.Tests.csproj", "{DDC67EDF-989F-47EC-B656-08746F2AB8FF}"
 EndProject
