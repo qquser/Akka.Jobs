@@ -10,6 +10,15 @@ public static class ServicesConfiguration
 {
     public static void AddJobContext(this IServiceCollection services)
     {
+        services.AddActorSystemSingleton();
+        services.AddJobContextSingleton();
+    }
+}
+
+internal static class InternalServicesConfiguration
+{
+    public static void AddActorSystemSingleton(this IServiceCollection services)
+    {
         services.AddSingleton(provider =>
         {
             var di = DependencyResolverSetup.Create(provider);
@@ -17,6 +26,9 @@ public static class ServicesConfiguration
                 .And(di);
             return ActorSystem.Create("job-worker-system", actorSystemSetup);
         });
+    }
+    public static void AddJobContextSingleton(this IServiceCollection services)
+    {
         services.AddSingleton(typeof(IJobContext<,>), typeof(JobContext<,>));
     }
 }

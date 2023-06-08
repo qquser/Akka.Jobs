@@ -3,7 +3,7 @@
 namespace Job.Tests.JobTests;
 
 
-public class ForEachJob : IJob<TestForEachJobInput, TestForEachJobResult>
+public class TestForEachJob : IJob<TestForEachJobInput, TestForEachJobResult>
 {
     private int _currentState;
     
