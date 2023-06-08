@@ -22,7 +22,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     private WorkerDoJobCommand<TIn>? _doJobCommand;
     
     private Guid _jobId;
-    private bool _startedFlag = false;
+    private bool _startedFlag;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
     private readonly ILogger<ManagerActor<TIn, TOut>> _logger;
@@ -158,13 +158,5 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     protected override void PostStop()
     {
         _cancellationTokenSource?.Dispose();
-    }
-
-    protected override SupervisorStrategy SupervisorStrategy()
-    {
-        return new OneForOneStrategy(
-            maxNrOfRetries: -1,
-            withinTimeRange: TimeSpan.FromMilliseconds(-1),
-            localOnlyDecider: ex => Directive.Stop);
     }
 }

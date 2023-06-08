@@ -42,7 +42,7 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
     
     private void Failed(Status.Failure msg)
     {
-        throw msg?.Cause ?? throw new Exception("Unknown error, msg?.Cause == null");
+        throw msg.Cause ?? throw new Exception("Unknown error, msg.Cause == null");
     }
     
     private void ReadWorkerInfoCommandHandler(ReadWorkerInfoCommand command)

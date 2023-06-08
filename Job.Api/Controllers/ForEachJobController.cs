@@ -31,6 +31,16 @@ public class ForEachJobController : ControllerBase
     }
     
     [HttpPost]
+    [Route(nameof(BatchJobs))]
+    public async Task BatchJobs([FromQuery] int input)
+    {
+        var list = Enumerable
+            .Range(0, input)
+            .Select(_ => _jobContext.CreateJobAsync(new ForEachJobInput{Count = 100})); 
+        await Task.WhenAll(list);
+    }
+    
+    [HttpPost]
     [Route(nameof(StopJob))]
     public async Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
     {
