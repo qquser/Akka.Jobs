@@ -16,10 +16,7 @@ namespace Job.Tests;
 
         public AkkaDiFixture()
         {
-            Services = new ServiceCollection()
-                .AddLogging();
- 
-            Services.AddSingleton<ILoggerFactory, NullLoggerFactory>();
+            Services = new ServiceCollection();
             
             Services.AddScoped<IJob<TIn, TOut>, TJob>();
             Services.AddJobContext();

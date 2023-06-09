@@ -65,9 +65,10 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
 
         if(token.IsCancellationRequested)
         {
-            command.DoJobCommandSender.Tell(new JobDoneCommandResult(false, 
-                "Job was cancelled.", 
-                command.JobId));
+            if(!command.IsCreateCommand)
+                command.DoJobCommandSender.Tell(new JobDoneCommandResult(false, 
+                    "Job was cancelled.", 
+                    command.JobId));
             return;
         }
         if(!command.IsCreateCommand)

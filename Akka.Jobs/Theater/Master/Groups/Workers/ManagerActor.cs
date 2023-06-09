@@ -5,7 +5,6 @@ using Akka.Jobs.Models;
 using Akka.Jobs.Theater.ActorQueries.Messages.States;
 using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 using Akka.Pattern;
-using Microsoft.Extensions.Logging;
 
 namespace Akka.Jobs.Theater.Master.Groups.Workers;
 
@@ -25,11 +24,9 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     private bool _startedFlag;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
-    private readonly ILogger<ManagerActor<TIn, TOut>> _logger;
     
-    public ManagerActor(ILogger<ManagerActor<TIn, TOut>> logger)
+    public ManagerActor()
     {
-        _logger = logger;
         //Commands
         Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
@@ -134,7 +131,6 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
                         var text = $"BackoffSupervisor: jobId: {_jobId}" +
                                    $" {exception?.Message}" +
                                    $" InnerException: {exception?.InnerException?.Message}";
-                        _logger.LogError(text);
                         _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, _jobId));
                         return Directive.Stop;
                     }
