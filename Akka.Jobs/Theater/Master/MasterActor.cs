@@ -12,8 +12,8 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
-    private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
+    private readonly Dictionary<string, IActorRef> _groupNameToActor = new();
+    private readonly Dictionary<IActorRef, string> _actorToGroupName = new();
     
     public MasterActor()
     {
@@ -30,7 +30,7 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
 
     private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
     {
-        if (_groupIdToActor.TryGetValue(msg.GroupId, out var groupActor))
+        if (_groupNameToActor.TryGetValue(msg.GroupName, out var groupActor))
         {
             groupActor.Forward(msg);
             return;
@@ -41,25 +41,25 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand command)
     {
-        if (!_groupIdToActor.ContainsKey(command.GroupName))
+        if (!_groupNameToActor.ContainsKey(command.GroupName))
         {
-            Sender.Tell(new StopJobCommandResult(false, $"_groupIdToActor does not contain {command.GroupName}"));
+            Sender.Tell(new StopJobCommandResult(false, $"Group list does not contain {command.GroupName}"));
             return;
         }
 
-        _groupIdToActor[command.GroupName].Forward(command);
+        _groupNameToActor[command.GroupName].Forward(command);
     }
 
     private void GroupActorTerminatedHandler(Terminated t)
     {
-        var groupId = _actorToGroupId[t.ActorRef];
-        _actorToGroupId.Remove(t.ActorRef);
-        _groupIdToActor.Remove(groupId);
+        var groupName = _actorToGroupName[t.ActorRef];
+        _actorToGroupName.Remove(t.ActorRef);
+        _groupNameToActor.Remove(groupName);
     }
     
     private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (_groupIdToActor.TryGetValue(doJobCommand.GroupName, out var actorRef))
+        if (_groupNameToActor.TryGetValue(doJobCommand.GroupName, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
@@ -81,9 +81,11 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
         
         var groupActor = Context.ActorOf(groupActorProps, $"group-{doJobCommand.GroupName}");
         Context.Watch(groupActor);
+
+        _groupNameToActor.Add(doJobCommand.GroupName, groupActor);
+        _actorToGroupName.Add(groupActor, doJobCommand.GroupName);
+        
         groupActor.Forward(doJobCommand);
-        _groupIdToActor.Add(doJobCommand.GroupName, groupActor);
-        _actorToGroupId.Add(groupActor, doJobCommand.GroupName);
     }
     
     protected override SupervisorStrategy SupervisorStrategy()

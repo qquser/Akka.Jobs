@@ -13,7 +13,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private string? _groupId;
+    private string? _groupName;
 
     private readonly Dictionary<Guid, IActorRef> _idToManagerActor = new();
     private readonly Dictionary<IActorRef, Guid> _managerActorToId = new();
@@ -71,7 +71,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
 
     private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (_groupId != null && doJobCommand.GroupName != _groupId)
+        if (_groupName != null && doJobCommand.GroupName != _groupName)
         {
             var message = "Ignoring Create Worker Actor";
             Sender.Tell(doJobCommand.IsCreateCommand
@@ -89,7 +89,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
             return;
         }
 
-        _groupId ??= doJobCommand.GroupName;
+        _groupName ??= doJobCommand.GroupName;
 
         var managerActorProps = DependencyResolver
             .For(Context.System)

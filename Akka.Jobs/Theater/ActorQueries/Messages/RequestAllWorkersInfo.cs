@@ -2,14 +2,14 @@
 
 internal sealed class RequestAllWorkersInfo
 {
-    public RequestAllWorkersInfo(long requestId, string groupId, TimeSpan timeout)
+    public RequestAllWorkersInfo(long requestId, string groupName, TimeSpan timeout)
     {
         RequestId = requestId;
-        GroupId = groupId;
+        GroupName = groupName;
         Timeout = timeout;
     }
 
     public long RequestId { get; }
-    public string GroupId { get; }
+    public string GroupName { get; }
     public TimeSpan Timeout { get; }
 }
