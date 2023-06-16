@@ -8,7 +8,7 @@ namespace Akka.Jobs;
 
 public static class ServicesConfiguration
 {
-    public static void AddJobContext(this IServiceCollection services)
+    public static void AddJobContext(this IServiceCollection services, string config = "")
     {
         services.AddActorSystemSingleton();
         services.AddJobContextSingleton();
@@ -17,12 +17,13 @@ public static class ServicesConfiguration
 
 internal static class InternalServicesConfiguration
 {
-    public static void AddActorSystemSingleton(this IServiceCollection services)
+    public static void AddActorSystemSingleton(this IServiceCollection services, string config = "")
     {
         services.AddSingleton(provider =>
         {
             var di = DependencyResolverSetup.Create(provider);
             var actorSystemSetup = BootstrapSetup.Create()
+                .WithConfig(config)
                 .And(di);
             return ActorSystem.Create("job-worker-system", actorSystemSetup);
         });
