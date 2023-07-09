@@ -1,4 +1,5 @@
 ﻿using Akka.Jobs.Interfaces;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Job.Tests.JobTests;
 

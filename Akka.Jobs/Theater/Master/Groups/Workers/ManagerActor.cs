@@ -7,6 +7,7 @@ using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 using Akka.Pattern;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Akka.Jobs.Theater.Master.Groups.Workers;
 
@@ -83,8 +84,9 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand stopJobCommand)
     {
-        if (string.IsNullOrWhiteSpace(_jobId) || string.IsNullOrWhiteSpace(stopJobCommand.JobId) 
-                                         || stopJobCommand.JobId != _jobId)
+        if (string.IsNullOrWhiteSpace(_jobId) 
+            || string.IsNullOrWhiteSpace(stopJobCommand.JobId) 
+            || stopJobCommand.JobId != _jobId)
         {
             Sender.Tell(new StopJobCommandResult(false, 
                 $"Wrong JobId stopJobCommand.JobId:{stopJobCommand.JobId} _jobId: {_jobId}"));
@@ -136,40 +138,42 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
             .For(Context.System)
             .Props<WorkerActor<TIn,TOut>>();
 
-        var supervisorOfWorkerActorProps = BackoffSupervisor.Props(
-            Backoff.OnFailure(
-                    workerActorProps,
-                    childName: $"worker-{doJobCommand.JobId}",
-                    minBackoff: _minBackoff,
-                    maxBackoff: _maxBackoff,
-                    randomFactor: 0.2,
-                    maxNrOfRetries: _maxNrOfRetries)
-                .WithSupervisorStrategy(new OneForOneStrategy(exception =>
-                {
-                    var text = $"BackoffSupervisor: jobId: {_jobId} " +
-                               $"IsCancellationRequested {_cancellationTokenSource.IsCancellationRequested} " +
-                               $"_currentNrOfRetries {_currentNrOfRetries} " +
-                               $"Message: {exception?.Message} " +
-                               $"InnerException: {exception?.InnerException?.Message} ";
-                    _logger?.LogError(text);
-                    
-                    if (_cancellationTokenSource.IsCancellationRequested)
-                        return Directive.Stop;
+        var supervisorOfWorkerActorProps = BackoffSupervisor.Props(Backoff
+            .OnFailure(
+                workerActorProps,
+                childName: $"worker-{doJobCommand.JobId}",
+                minBackoff: _minBackoff,
+                maxBackoff: _maxBackoff,
+                randomFactor: 0.2,
+                maxNrOfRetries: _maxNrOfRetries)
+            .WithSupervisorStrategy(new OneForOneStrategy(exception =>
+            {
+                var text = $"BackoffSupervisor: jobId: {_jobId} " +
+                           $"IsCancellationRequested {_cancellationTokenSource.IsCancellationRequested} " +
+                           $"_currentNrOfRetries {_currentNrOfRetries} " +
+                           $"Message: {exception?.Message} " +
+                           $"InnerException: {exception?.InnerException?.Message} ";
+                _logger?.LogError(text);
 
-                    if (_currentNrOfRetries >= _maxNrOfRetries)
-                    {
-                        _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, doJobCommand.JobId));
-                        return Directive.Stop;
-                    }
-                    
-                    _currentNrOfRetries += 1;
-                    return Directive.Restart;
-                })));
+                if (_cancellationTokenSource.IsCancellationRequested)
+                    return Directive.Stop;
+
+                if (_currentNrOfRetries >= _maxNrOfRetries)
+                {
+                    _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, doJobCommand.JobId));
+                    return Directive.Stop;
+                }
+
+                _currentNrOfRetries += 1;
+                return Directive.Restart;
+            })));
+        
         _workerSupervisorActor = Context
             .ActorOf(supervisorOfWorkerActorProps, $"supervisor-of-worker-{doJobCommand.JobId}");
-  
+        
         Context.Watch(_workerSupervisorActor);
     }
+    
     protected override void PreStart()
     {
         _logger = _scope.ServiceProvider.GetService<ILogger<ManagerActor<TIn, TOut>>>();

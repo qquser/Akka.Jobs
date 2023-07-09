@@ -1,8 +1,7 @@
 using Akka.Jobs;
 using Akka.Jobs.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Job.Tests;
 

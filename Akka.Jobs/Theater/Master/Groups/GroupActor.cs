@@ -6,6 +6,7 @@ using Akka.Jobs.Theater.ActorQueries;
 using Akka.Jobs.Theater.ActorQueries.Messages;
 using Akka.Jobs.Theater.Master.Groups.Workers;
 using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Akka.Jobs.Theater.Master.Groups;
 

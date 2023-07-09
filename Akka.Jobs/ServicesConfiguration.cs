@@ -10,7 +10,7 @@ public static class ServicesConfiguration
 {
     public static void AddJobContext(this IServiceCollection services, string config = "")
     {
-        services.AddActorSystemSingleton();
+        services.AddActorSystemSingleton(config);
         services.AddJobContextSingleton();
     }
 }

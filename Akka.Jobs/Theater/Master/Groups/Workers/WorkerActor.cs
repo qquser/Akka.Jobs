@@ -5,6 +5,7 @@ using Akka.Jobs.Models;
 using Akka.Jobs.Theater.ActorQueries.Messages.States;
 using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 using Microsoft.Extensions.DependencyInjection;
+// ReSharper disable ClassNeverInstantiated.Global
 
 [assembly:InternalsVisibleTo("Job.Tests")]
 namespace Akka.Jobs.Theater.Master.Groups.Workers;

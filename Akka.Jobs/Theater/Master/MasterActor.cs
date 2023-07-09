@@ -5,6 +5,7 @@ using Akka.Jobs.Models;
 using Akka.Jobs.Theater.ActorQueries.Messages;
 using Akka.Jobs.Theater.Master.Groups;
 using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Akka.Jobs.Theater.Master;
 
@@ -93,6 +94,6 @@ internal sealed class MasterActor<TIn, TOut> : ReceiveActor
         return new OneForOneStrategy(
             maxNrOfRetries: -1,
             withinTimeRange: TimeSpan.FromMilliseconds(-1),
-            localOnlyDecider: ex => Directive.Stop);
+            localOnlyDecider: _ => Directive.Stop);
     }
 }
