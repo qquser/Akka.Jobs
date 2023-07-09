@@ -9,15 +9,15 @@ internal sealed class RespondAllWorkersInfo<TOut>
     public RespondAllWorkersInfo(long requestId)
     {
         RequestId = requestId;
-        WorkersData = new Dictionary<Guid, ReplyWorkerInfo<TOut>>();
+        WorkersData = new Dictionary<string, ReplyWorkerInfo<TOut>>();
     }
     
-    public RespondAllWorkersInfo(long requestId, Dictionary<Guid, ReplyWorkerInfo<TOut>> workersData)
+    public RespondAllWorkersInfo(long requestId, Dictionary<string, ReplyWorkerInfo<TOut>> workersData)
     {
         RequestId = requestId;
         WorkersData = workersData;
     }
 
     public long RequestId { get; }
-    public Dictionary<Guid, ReplyWorkerInfo<TOut>> WorkersData { get; }
+    public Dictionary<string, ReplyWorkerInfo<TOut>> WorkersData { get; }
 }

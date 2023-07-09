@@ -9,17 +9,17 @@ using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
 namespace Akka.Jobs.Theater.Master.Groups;
 
-internal class GroupActor<TIn, TOut> : ReceiveActor
+internal sealed class GroupActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private string? _groupName;
+    private string? _groupId;
 
-    private readonly Dictionary<Guid, IActorRef> _idToManagerActor = new();
-    private readonly Dictionary<IActorRef, Guid> _managerActorToId = new();
+    private readonly Dictionary<string, IActorRef> _idToManagerActor = new();
+    private readonly Dictionary<IActorRef, string> _managerActorToId = new();
     
-    private readonly Dictionary<IActorRef, Guid> _workerActorToId = new ();
-    private readonly Dictionary<Guid, IActorRef> _idToWorkerActor = new ();
+    private readonly Dictionary<IActorRef, string> _workerActorToId = new ();
+    private readonly Dictionary<string, IActorRef> _idToWorkerActor = new ();
 
     public GroupActor()
     {
@@ -77,7 +77,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
 
     private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (_groupName != null && doJobCommand.GroupName != _groupName)
+        if (_groupId != null && doJobCommand.GroupName != _groupId)
         {
             var message = "Ignoring Create Worker Actor";
             Sender.Tell(doJobCommand.IsCreateCommand
@@ -95,7 +95,7 @@ internal class GroupActor<TIn, TOut> : ReceiveActor
             return;
         }
 
-        _groupName ??= doJobCommand.GroupName;
+        _groupId ??= doJobCommand.GroupName;
 
         var managerActorProps = DependencyResolver
             .For(Context.System)

@@ -15,7 +15,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     where TOut : IJobResult
 {
     /// <summary>
-    /// Здесь зарегистрирвоан MasterActor
+    /// Здесь зарегистрирван MasterActor
     /// </summary>
     private readonly IActorRef _masterActor;
     
@@ -38,7 +38,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         int? maxNrOfRetries = null,
         TimeSpan? minBackoff = null,
         TimeSpan? maxBackoff = null, 
-        Guid? jobId = null,
+        string? jobId = null,
         TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
@@ -50,7 +50,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         int? maxNrOfRetries = null, 
         TimeSpan? minBackoff = null,
         TimeSpan? maxBackoff = null, 
-        Guid? jobId = null,
+        string? jobId = null,
         TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
@@ -58,14 +58,14 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         return await _masterActor.Ask<JobDoneCommandResult>(command, currentTimeout); //Ожидает ответ JobDoneCommandResult от MasterActor.DoJobCommandHandler
     }
 
-    public async Task<StopJobCommandResult> StopJobAsync(Guid jobId, TimeSpan? timeout = null)
+    public async Task<StopJobCommandResult> StopJobAsync(string jobId, TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         return await _masterActor.Ask<StopJobCommandResult>( 
             new StopJobCommand(jobId, GetGroupName()), currentTimeout); //Ожидает ответ StopJobCommandResult от MasterActor.StopJobCommandHandler
     }
 
-    public async Task<IDictionary<Guid, ReplyWorkerInfo<TOut>>> GetAllJobsCurrentStatesAsync(long requestId,
+    public async Task<IDictionary<string, ReplyWorkerInfo<TOut>>> GetAllJobsCurrentStatesAsync(long requestId,
         TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
@@ -81,9 +81,9 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     }
     
     private DoJobCommand<TIn> GetDoJobCommand(TIn input, bool isCreatedCommand,
-        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,   Guid? jobId = null)
+        int? maxNrOfRetries = null, TimeSpan? minBackoff = null, TimeSpan? maxBackoff = null,  string? jobId = null)
     {
-        var id = jobId ?? Guid.NewGuid();
+        var id = jobId ?? Guid.NewGuid().ToString();
         return new DoJobCommand<TIn>(input,
             id,
             GetGroupName(),

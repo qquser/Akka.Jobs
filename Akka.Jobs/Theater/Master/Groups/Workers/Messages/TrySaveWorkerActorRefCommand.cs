@@ -6,7 +6,7 @@ internal sealed class TrySaveWorkerActorRefCommand
 {
     public TrySaveWorkerActorRefCommand(
         IActorRef actorRef, 
-        Guid slaveActorId,
+        string slaveActorId,
         IActorRef downloadQuerySender)
     {
         ActorRef = actorRef;
@@ -16,5 +16,5 @@ internal sealed class TrySaveWorkerActorRefCommand
 
     public IActorRef DownloadQuerySender { get; }
     public IActorRef ActorRef { get; }
-    public Guid SlaveActorId { get; }
+    public string SlaveActorId { get; }
 }

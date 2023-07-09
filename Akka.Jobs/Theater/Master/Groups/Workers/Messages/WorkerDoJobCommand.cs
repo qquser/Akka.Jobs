@@ -9,7 +9,7 @@ internal sealed class WorkerDoJobCommand<TIn>
     public WorkerDoJobCommand(
         TIn jobInput,
         IActorRef doJobCommandSender, 
-        Guid jobId,
+        string jobId,
         CancellationTokenSource cancellationTokenSource,
         bool isCreateCommand)
     {
@@ -22,7 +22,7 @@ internal sealed class WorkerDoJobCommand<TIn>
     public bool IsCreateCommand { get; }
     public TIn JobInput { get; }
     public IActorRef DoJobCommandSender { get; }
-    public Guid JobId { get; }
+    public string JobId { get; }
     public CancellationTokenSource CancellationTokenSource { get; }
 
 }

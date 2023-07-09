@@ -4,6 +4,6 @@ namespace Job.Api.JobExamples.SimpleLoop;
 
 public class ForEachJobResult : IJobResult
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     public int Data { get; set; }
 }

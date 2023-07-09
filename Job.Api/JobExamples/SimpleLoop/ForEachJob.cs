@@ -26,7 +26,7 @@ public class ForEachJob : IJob<ForEachJobInput, ForEachJobResult>, IDisposable
         return true;
     }
 
-    public ForEachJobResult GetCurrentState(Guid jobId)
+    public ForEachJobResult GetCurrentState(string jobId)
     {
         return new ForEachJobResult
         {

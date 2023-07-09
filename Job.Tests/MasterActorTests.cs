@@ -22,9 +22,9 @@ public class ActorServiceProviderPropsWithScopesSpecs
         _actorSystem = _fixture.Provider.GetService<ActorSystem>();
     }
     
-    private DoJobCommand<TestForEachJobInput> GetDoJobCommand(TestForEachJobInput input, Guid? jobId = null)
+    private DoJobCommand<TestForEachJobInput> GetDoJobCommand(TestForEachJobInput input, string? jobId = null)
     {
-        var id = jobId ?? Guid.NewGuid();
+        var id = jobId ?? Guid.NewGuid().ToString();
         return new DoJobCommand<TestForEachJobInput>(input,
             id,
             "Test",

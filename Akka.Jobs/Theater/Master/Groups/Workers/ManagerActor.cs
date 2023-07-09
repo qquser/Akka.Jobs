@@ -5,10 +5,12 @@ using Akka.Jobs.Models;
 using Akka.Jobs.Theater.ActorQueries.Messages.States;
 using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 using Akka.Pattern;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Akka.Jobs.Theater.Master.Groups.Workers;
 
-internal class ManagerActor<TIn, TOut> : ReceiveActor
+internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
@@ -20,13 +22,16 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
     private IActorRef? _workerSupervisorActor;
     private WorkerDoJobCommand<TIn>? _doJobCommand;
     
-    private Guid _jobId;
+    private string _jobId;
     private bool _startedFlag;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
+    private readonly IServiceScope _scope;
+    private ILogger<ManagerActor<TIn, TOut>> _logger;
     
-    public ManagerActor()
+    public ManagerActor(IServiceProvider serviceProvider)
     {
+        _scope = serviceProvider.CreateScope();
         //Commands
         Receive<DoJobCommand<TIn>>(DoJobCommandHandler);
         Receive<StopJobCommand>(StopJobCommandHandler);
@@ -45,7 +50,7 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
         if (!_startedFlag)
         {
             var groupActor = Context.Parent;
-            if ((groupActor is LocalActorRef localActorRef) && localActorRef.IsTerminated)
+            if (groupActor is LocalActorRef localActorRef && localActorRef.IsTerminated)
             {
                 _doJobCommandSender.Tell(new JobDoneCommandResult(false, 
                     "TrySaveWorkerActorRefCommand Failed. IsTerminated == true. Group Actor has been terminated.",
@@ -78,14 +83,17 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand _)
     {
-        if (!_cancellationTokenSource.IsCancellationRequested)
+        if (_cancellationTokenSource.IsCancellationRequested)
         {
-            _cancellationTokenSource.Cancel();
-            _workerSupervisorActor.Tell(PoisonPill.Instance);
-            Sender.Tell(new StopJobCommandResult(true, "Ok"));
+            Sender.Tell(new StopJobCommandResult(false, "Cancellation Requested Already."));
             return;
         }
-        Sender.Tell(new StopJobCommandResult(false, "Cancellation Requested Already."));
+     
+        if(_doJobCommand?.IsCreateCommand != true)
+            _doJobCommandSender.Tell(new JobDoneCommandResult(false, "Job was cancelled.", _jobId));
+        
+        _cancellationTokenSource.Cancel();
+        Sender.Tell(new StopJobCommandResult(true, "Ok"));
     }
     
     private void WorkerActorTerminatedHandler(Terminated t)
@@ -124,17 +132,21 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
                     maxNrOfRetries: _maxNrOfRetries)
                 .WithSupervisorStrategy(new OneForOneStrategy(exception =>
                 {
-                    if (exception is TaskCanceledException 
-                        || exception.InnerException is TaskCanceledException
+                    var text = $"BackoffSupervisor: jobId: {_jobId} " +
+                               $"IsCancellationRequested {_cancellationTokenSource.IsCancellationRequested} " +
+                               $"_currentNrOfRetries {_currentNrOfRetries} " +
+                               $"Message: {exception?.Message} " +
+                               $"InnerException: {exception?.InnerException?.Message} ";
+                    _logger.LogError(text);
+                    
+                    if (_cancellationTokenSource.IsCancellationRequested 
+                        || exception is TaskCanceledException 
+                        || exception?.InnerException is TaskCanceledException
                         || _currentNrOfRetries >= _maxNrOfRetries)
                     {
-                        var text = $"BackoffSupervisor: jobId: {_jobId}" +
-                                   $" {exception?.Message}" +
-                                   $" InnerException: {exception?.InnerException?.Message}";
-                        _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, _jobId));
                         return Directive.Stop;
                     }
-
+                    
                     _currentNrOfRetries += 1;
                     return Directive.Restart;
                 })));
@@ -150,9 +162,15 @@ internal class ManagerActor<TIn, TOut> : ReceiveActor
             _cancellationTokenSource,
             doJobCommand.IsCreateCommand);
     }
+    protected override void PreStart()
+    {
+        _logger = _scope.ServiceProvider.GetService<ILogger<ManagerActor<TIn, TOut>>>();
+    }
     
     protected override void PostStop()
     {
-        _cancellationTokenSource?.Dispose();
+        _scope.Dispose();
+        _cancellationTokenSource.Dispose();
     }
+    
 }

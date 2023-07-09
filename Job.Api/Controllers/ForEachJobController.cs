@@ -44,7 +44,7 @@ public class ForEachJobController : ControllerBase
     [Route(nameof(StopJob))]
     public async Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
     {
-        return await _jobContext.StopJobAsync(jobId);
+        return await _jobContext.StopJobAsync(jobId.ToString());
     }
     
     [HttpGet]

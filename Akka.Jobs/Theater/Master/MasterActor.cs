@@ -8,12 +8,12 @@ using Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
 namespace Akka.Jobs.Theater.Master;
 
-internal class MasterActor<TIn, TOut> : ReceiveActor
+internal sealed class MasterActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private readonly Dictionary<string, IActorRef> _groupNameToActor = new();
-    private readonly Dictionary<IActorRef, string> _actorToGroupName = new();
+    private readonly Dictionary<string, IActorRef> _groupIdToActor = new();
+    private readonly Dictionary<IActorRef, string> _actorToGroupId = new();
     
     public MasterActor()
     {
@@ -30,7 +30,7 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
 
     private void RequestAllWorkersInfoQueryHandler(RequestAllWorkersInfo msg)
     {
-        if (_groupNameToActor.TryGetValue(msg.GroupName, out var groupActor))
+        if (_groupIdToActor.TryGetValue(msg.GroupId, out var groupActor))
         {
             groupActor.Forward(msg);
             return;
@@ -41,25 +41,25 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
 
     private void StopJobCommandHandler(StopJobCommand command)
     {
-        if (!_groupNameToActor.ContainsKey(command.GroupName))
+        if (!_groupIdToActor.ContainsKey(command.GroupName))
         {
-            Sender.Tell(new StopJobCommandResult(false, $"Group list does not contain {command.GroupName}"));
+            Sender.Tell(new StopJobCommandResult(false, $"_groupIdToActor does not contain {command.GroupName}"));
             return;
         }
 
-        _groupNameToActor[command.GroupName].Forward(command);
+        _groupIdToActor[command.GroupName].Forward(command);
     }
 
     private void GroupActorTerminatedHandler(Terminated t)
     {
-        var groupName = _actorToGroupName[t.ActorRef];
-        _actorToGroupName.Remove(t.ActorRef);
-        _groupNameToActor.Remove(groupName);
+        var groupId = _actorToGroupId[t.ActorRef];
+        _actorToGroupId.Remove(t.ActorRef);
+        _groupIdToActor.Remove(groupId);
     }
     
     private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
-        if (_groupNameToActor.TryGetValue(doJobCommand.GroupName, out var actorRef))
+        if (_groupIdToActor.TryGetValue(doJobCommand.GroupName, out var actorRef))
         {
             if ((actorRef is LocalActorRef localActorRef) && localActorRef.IsTerminated)
             {
@@ -82,8 +82,8 @@ internal class MasterActor<TIn, TOut> : ReceiveActor
         var groupActor = Context.ActorOf(groupActorProps, $"group-{doJobCommand.GroupName}");
         Context.Watch(groupActor);
 
-        _groupNameToActor.Add(doJobCommand.GroupName, groupActor);
-        _actorToGroupName.Add(groupActor, doJobCommand.GroupName);
+        _groupIdToActor.Add(doJobCommand.GroupName, groupActor);
+        _actorToGroupId.Add(groupActor, doJobCommand.GroupName);
         
         groupActor.Forward(doJobCommand);
     }

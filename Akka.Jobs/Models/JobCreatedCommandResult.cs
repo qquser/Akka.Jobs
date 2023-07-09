@@ -2,14 +2,14 @@
 
 public sealed class JobCreatedCommandResult
 {
-    public JobCreatedCommandResult(bool success, string result, Guid jobId)
+    public JobCreatedCommandResult(bool success, string result, string jobId)
     {
         Success = success;
         Result = result;
         JobId = jobId;
     }
     
-    public Guid JobId { get; set; }
+    public string JobId { get; set; }
     public bool Success { get; set; }
     public string Result { get; set; }
 }

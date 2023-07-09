@@ -20,7 +20,7 @@ public class TestForEachJob : IJob<TestForEachJobInput, TestForEachJobResult>
         return true;
     }
 
-    public TestForEachJobResult GetCurrentState(Guid jobId)
+    public TestForEachJobResult GetCurrentState(string jobId)
     {
         return new TestForEachJobResult
         {
@@ -37,6 +37,6 @@ public class TestForEachJobInput : IJobInput
 
 public class TestForEachJobResult : IJobResult
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     public int Data { get; set; }
 }

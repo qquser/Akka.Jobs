@@ -9,11 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 [assembly:InternalsVisibleTo("Job.Tests")]
 namespace Akka.Jobs.Theater.Master.Groups.Workers;
 
-internal class WorkerActor<TIn, TOut> : ReceiveActor
+internal sealed class WorkerActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private Guid _jobId;
+    private string _jobId;
 
     private readonly IServiceScope _scope;
     private readonly IActorRef _self;
@@ -62,16 +62,8 @@ internal class WorkerActor<TIn, TOut> : ReceiveActor
         
         var token = command.CancellationTokenSource.Token;
         var jobResult = await _job.DoAsync(command.JobInput, token);
-
-        if(token.IsCancellationRequested)
-        {
-            if(!command.IsCreateCommand)
-                command.DoJobCommandSender.Tell(new JobDoneCommandResult(false, 
-                    "Job was cancelled.", 
-                    command.JobId));
-            return;
-        }
-        if(!command.IsCreateCommand)
+        
+        if(!command.IsCreateCommand && !token.IsCancellationRequested)
             command.DoJobCommandSender.Tell(new JobDoneCommandResult(jobResult, "Ok", command.JobId));
         
         _self.Tell(PoisonPill.Instance);
