@@ -1,21 +1,18 @@
 using Akka.Jobs;
 using Akka.Jobs.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Job.Tests;
 
-public sealed class AkkaDiFixture<TIn, TOut, TJob>  : IDisposable
-     where TIn : IJobInput
-     where TOut : IJobResult 
-     where TJob : class, IJob<TIn, TOut>
+public sealed class AkkaDiFixtureWithoutJob<TIn, TOut, TJob>  : IDisposable
+    where TIn : IJobInput
+    where TOut : IJobResult 
+    where TJob : class, IJob<TIn, TOut>
 {
-    public AkkaDiFixture()
+    public AkkaDiFixtureWithoutJob()
     {
         Services = new ServiceCollection();
         
-        Services.AddScoped<IJob<TIn, TOut>, TJob>();
         Services.AddJobContext();
         // </DiFixture>
         Provider = Services.BuildServiceProvider();

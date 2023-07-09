@@ -14,7 +14,7 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
     where TIn : IJobInput
     where TOut : IJobResult
 {
-    private int _currentNrOfRetries;
+    private int _currentNrOfRetries; 
     private int _maxNrOfRetries;
     private TimeSpan _minBackoff;
     private TimeSpan _maxBackoff;
@@ -22,12 +22,12 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
     private IActorRef? _workerSupervisorActor;
     private WorkerDoJobCommand<TIn>? _doJobCommand;
     
-    private string _jobId;
+    private string? _jobId;
     private bool _startedFlag;
     private readonly CancellationTokenSource _cancellationTokenSource = new ();
     
     private readonly IServiceScope _scope;
-    private ILogger<ManagerActor<TIn, TOut>> _logger;
+    private ILogger<ManagerActor<TIn, TOut>>? _logger;
     
     public ManagerActor(IServiceProvider serviceProvider)
     {
@@ -54,7 +54,7 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
             {
                 _doJobCommandSender.Tell(new JobDoneCommandResult(false, 
                     "TrySaveWorkerActorRefCommand Failed. IsTerminated == true. Group Actor has been terminated.",
-                    _jobId));
+                    _jobId ?? string.Empty));
                 return;
             }
     
@@ -81,8 +81,16 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
         _workerSupervisorActor.Tell(_doJobCommand);
     }
 
-    private void StopJobCommandHandler(StopJobCommand _)
+    private void StopJobCommandHandler(StopJobCommand stopJobCommand)
     {
+        if (string.IsNullOrWhiteSpace(_jobId) || string.IsNullOrWhiteSpace(stopJobCommand.JobId) 
+                                         || stopJobCommand.JobId != _jobId)
+        {
+            Sender.Tell(new StopJobCommandResult(false, 
+                $"Wrong JobId stopJobCommand.JobId:{stopJobCommand.JobId} _jobId: {_jobId}"));
+            return;
+        }
+
         if (_cancellationTokenSource.IsCancellationRequested)
         {
             Sender.Tell(new StopJobCommandResult(false, "Cancellation Requested Already."));
@@ -90,7 +98,7 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
         }
      
         if(_doJobCommand?.IsCreateCommand != true)
-            _doJobCommandSender.Tell(new JobDoneCommandResult(false, "Job was cancelled.", _jobId));
+            _doJobCommandSender.Tell(new JobDoneCommandResult(false, "Job was cancelled.", stopJobCommand.JobId));
         
         _cancellationTokenSource.Cancel();
         Sender.Tell(new StopJobCommandResult(true, "Ok"));
@@ -117,6 +125,12 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
         _minBackoff = doJobCommand.MinBackoff;
         _maxBackoff = doJobCommand.MaxBackoff;
         _doJobCommandSender = Sender;
+        _doJobCommand = new WorkerDoJobCommand<TIn>(
+            doJobCommand.JobInput,
+            _doJobCommandSender, 
+            doJobCommand.JobId,
+            _cancellationTokenSource,
+            doJobCommand.IsCreateCommand);
 
         var workerActorProps = DependencyResolver
             .For(Context.System)
@@ -137,13 +151,14 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
                                $"_currentNrOfRetries {_currentNrOfRetries} " +
                                $"Message: {exception?.Message} " +
                                $"InnerException: {exception?.InnerException?.Message} ";
-                    _logger.LogError(text);
+                    _logger?.LogError(text);
                     
-                    if (_cancellationTokenSource.IsCancellationRequested 
-                        || exception is TaskCanceledException 
-                        || exception?.InnerException is TaskCanceledException
-                        || _currentNrOfRetries >= _maxNrOfRetries)
+                    if (_cancellationTokenSource.IsCancellationRequested)
+                        return Directive.Stop;
+
+                    if (_currentNrOfRetries >= _maxNrOfRetries)
                     {
+                        _doJobCommandSender.Tell(new JobDoneCommandResult(false, text, doJobCommand.JobId));
                         return Directive.Stop;
                     }
                     
@@ -154,13 +169,6 @@ internal sealed class ManagerActor<TIn, TOut> : ReceiveActor
             .ActorOf(supervisorOfWorkerActorProps, $"supervisor-of-worker-{doJobCommand.JobId}");
   
         Context.Watch(_workerSupervisorActor);
-        
-        _doJobCommand = new WorkerDoJobCommand<TIn>(
-            doJobCommand.JobInput,
-            _doJobCommandSender, 
-            doJobCommand.JobId,
-            _cancellationTokenSource,
-            doJobCommand.IsCreateCommand);
     }
     protected override void PreStart()
     {

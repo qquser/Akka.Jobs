@@ -77,6 +77,15 @@ internal sealed class GroupActor<TIn, TOut> : ReceiveActor
 
     private void DoJobCommandHandler(DoJobCommand<TIn> doJobCommand)
     {
+        if (string.IsNullOrWhiteSpace(doJobCommand.JobId))
+        {
+            var message = "JobId cannot be null or empty.";
+            Sender.Tell(doJobCommand.IsCreateCommand
+                ? new JobCreatedCommandResult(false, message, doJobCommand.JobId)
+                : new JobDoneCommandResult(false, message, doJobCommand.JobId));
+            return;
+        }
+        
         if (_groupId != null && doJobCommand.GroupName != _groupId)
         {
             var message = "Ignoring Create Worker Actor";

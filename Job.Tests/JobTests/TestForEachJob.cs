@@ -2,7 +2,6 @@
 
 namespace Job.Tests.JobTests;
 
-
 public class TestForEachJob : IJob<TestForEachJobInput, TestForEachJobResult>
 {
     private int _currentState;
@@ -22,21 +21,6 @@ public class TestForEachJob : IJob<TestForEachJobInput, TestForEachJobResult>
 
     public TestForEachJobResult GetCurrentState(string jobId)
     {
-        return new TestForEachJobResult
-        {
-            Id = jobId,
-            Data = _currentState
-        };
+        return new TestForEachJobResult(jobId, _currentState);
     }
-}
-
-public class TestForEachJobInput : IJobInput
-{
-    public int Count { get; set; }
-}
-
-public class TestForEachJobResult : IJobResult
-{
-    public string Id { get; set; }
-    public int Data { get; set; }
 }
