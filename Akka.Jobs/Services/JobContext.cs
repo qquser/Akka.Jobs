@@ -71,7 +71,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
         var currentTimeout = timeout ?? _defaultTimeout;
         var query = new RequestAllWorkersInfo(requestId, GetGroupName(), currentTimeout);
         RespondAllWorkersInfo<TOut> info = await _masterActor
-            .Ask<RespondAllWorkersInfo<TOut>>(query, currentTimeout); //Ожидает ответ RespondAllWorkersInfo от MasterActor.RequestAllWorkersInfoQueryHandler
+            .Ask<RespondAllWorkersInfo<TOut>>(query, currentTimeout.Add(TimeSpan.FromSeconds(2))); //Ожидает ответ RespondAllWorkersInfo от MasterActor.RequestAllWorkersInfoQueryHandler
         return info.WorkersData;
     }
     

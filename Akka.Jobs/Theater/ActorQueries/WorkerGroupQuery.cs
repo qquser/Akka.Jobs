@@ -72,8 +72,10 @@ internal sealed class WorkerGroupQuery<TOut> : UntypedActor
                     var replies = new Dictionary<string, ReplyWorkerInfo<TOut>>(repliesSoFar);
                     foreach (var actor in stillWaiting)
                     {
-                        var workerId = _actorToWorkerId[actor];
-                        replies.Add(workerId, new ReplyWorkerInfo<TOut>(false, "Worker Actor Timed Out"));
+                        if (_actorToWorkerId.TryGetValue(actor, out var workerId))
+                        {
+                            replies.Add(workerId, new ReplyWorkerInfo<TOut>(false, "Worker Actor Timed Out"));
+                        }
                     }
                     _requester.Tell(new RespondAllWorkersInfo<TOut>(_requestId, replies));
                     Context.Stop(Self);
@@ -89,12 +91,13 @@ internal sealed class WorkerGroupQuery<TOut> : UntypedActor
         HashSet<IActorRef> stillWaiting,
         Dictionary<string, ReplyWorkerInfo<TOut>> repliesSoFar)
     {
+        if (!_actorToWorkerId.TryGetValue(workerActor, out var workerId)) 
+            return;
+        
         Context.Unwatch(workerActor);
-        var workerId = _actorToWorkerId[workerActor];
         stillWaiting.Remove(workerActor);
-
         repliesSoFar.Add(workerId, reading);
-
+        
         if (stillWaiting.Count == 0)
         {
             _requester.Tell(new RespondAllWorkersInfo<TOut>(_requestId, repliesSoFar));

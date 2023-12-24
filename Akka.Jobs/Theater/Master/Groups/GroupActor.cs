@@ -60,7 +60,7 @@ internal sealed class GroupActor<TIn, TOut> : ReceiveActor
             Sender.Tell(new RespondAllWorkersInfo<TOut>(msg.RequestId));
             return;
         }
-
+        
         Context.ActorOf(
             WorkerGroupQuery<TOut>.Props(_workerActorToId, msg.RequestId, Sender, msg.Timeout));
     }
