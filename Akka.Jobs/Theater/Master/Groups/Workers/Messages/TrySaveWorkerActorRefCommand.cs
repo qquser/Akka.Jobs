@@ -2,19 +2,12 @@ using Akka.Actor;
 
 namespace Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
-internal sealed class TrySaveWorkerActorRefCommand
+internal sealed class TrySaveWorkerActorRefCommand(
+    IActorRef actorRef,
+    string slaveActorId,
+    IActorRef downloadQuerySender)
 {
-    public TrySaveWorkerActorRefCommand(
-        IActorRef actorRef, 
-        string slaveActorId,
-        IActorRef downloadQuerySender)
-    {
-        ActorRef = actorRef;
-        SlaveActorId = slaveActorId;
-        DownloadQuerySender = downloadQuerySender;
-    }
-
-    public IActorRef DownloadQuerySender { get; }
-    public IActorRef ActorRef { get; }
-    public string SlaveActorId { get; }
+    public IActorRef DownloadQuerySender { get; } = downloadQuerySender;
+    public IActorRef ActorRef { get; } = actorRef;
+    public string SlaveActorId { get; } = slaveActorId;
 }

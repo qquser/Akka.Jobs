@@ -2,14 +2,8 @@ using Akka.Jobs.Interfaces;
 
 namespace Job.Tests.JobTests;
 
-public class TestForEachJobResult : IJobResult
+public class TestForEachJobResult(string id, int data) : IJobResult
 {
-    public TestForEachJobResult(string id, int data )
-    {
-        Id = id;
-        Data = data;
-    }
-
-    public string Id { get; set; }
-    public int Data { get; set; }
+    public string Id { get; set; } = id;
+    public int Data { get; set; } = data;
 }

@@ -1,15 +1,8 @@
 ﻿namespace Akka.Jobs.Theater.ActorQueries.Messages;
 
-internal sealed class RequestAllWorkersInfo
+internal sealed class RequestAllWorkersInfo(long requestId, string groupId, TimeSpan timeout)
 {
-    public RequestAllWorkersInfo(long requestId, string groupId, TimeSpan timeout)
-    {
-        RequestId = requestId;
-        GroupId = groupId;
-        Timeout = timeout;
-    }
-
-    public long RequestId { get; }
-    public string GroupId { get; }
-    public TimeSpan Timeout { get; }
+    public long RequestId { get; } = requestId;
+    public string GroupId { get; } = groupId;
+    public TimeSpan Timeout { get; } = timeout;
 }

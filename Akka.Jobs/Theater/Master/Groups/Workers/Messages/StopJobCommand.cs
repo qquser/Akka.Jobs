@@ -1,12 +1,7 @@
 namespace Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
-internal sealed class StopJobCommand
+internal sealed class StopJobCommand(string jobId, string groupName)
 {
-    public StopJobCommand(string jobId, string groupName)
-    {
-        JobId = jobId;
-        GroupName = groupName;
-    }
-    public string JobId { get; }
-    public string GroupName { get; }
+    public string JobId { get; } = jobId;
+    public string GroupName { get; } = groupName;
 }

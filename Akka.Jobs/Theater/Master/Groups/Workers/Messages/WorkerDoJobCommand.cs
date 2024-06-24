@@ -3,26 +3,17 @@ using Akka.Jobs.Interfaces;
 
 namespace Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
-internal sealed class WorkerDoJobCommand<TIn> 
-    where  TIn : IJobInput
+internal sealed class WorkerDoJobCommand<TIn>(
+    TIn jobInput,
+    IActorRef doJobCommandSender,
+    string jobId,
+    CancellationTokenSource cancellationTokenSource,
+    bool isCreateCommand)
+    where TIn : IJobInput
 {
-    public WorkerDoJobCommand(
-        TIn jobInput,
-        IActorRef doJobCommandSender, 
-        string jobId,
-        CancellationTokenSource cancellationTokenSource,
-        bool isCreateCommand)
-    {
-        IsCreateCommand = isCreateCommand;
-        JobId = jobId;
-        CancellationTokenSource = cancellationTokenSource;
-        DoJobCommandSender = doJobCommandSender;
-        JobInput = jobInput;
-    }
-    public bool IsCreateCommand { get; }
-    public TIn JobInput { get; }
-    public IActorRef DoJobCommandSender { get; }
-    public string JobId { get; }
-    public CancellationTokenSource CancellationTokenSource { get; }
-
+    public bool IsCreateCommand { get; } = isCreateCommand;
+    public TIn JobInput { get; } = jobInput;
+    public IActorRef DoJobCommandSender { get; } = doJobCommandSender;
+    public string JobId { get; } = jobId;
+    public CancellationTokenSource CancellationTokenSource { get; } = cancellationTokenSource;
 }

@@ -34,7 +34,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     }
 
     
-    public async Task<JobCreatedCommandResult> CreateJobAsync(TIn input,
+    public Task<JobCreatedCommandResult> CreateJobAsync(TIn input,
         int? maxNrOfRetries = null,
         TimeSpan? minBackoff = null,
         TimeSpan? maxBackoff = null, 
@@ -43,10 +43,10 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, true, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return await _masterActor.Ask<JobCreatedCommandResult>(command, currentTimeout); //Ожидает ответ JobCreatedCommandResult от MasterActor.DoJobCommandHandler
+        return _masterActor.Ask<JobCreatedCommandResult>(command, currentTimeout); //Ожидает ответ JobCreatedCommandResult от MasterActor.DoJobCommandHandler
     }
 
-    public async Task<JobDoneCommandResult> DoJobAsync(TIn input, 
+    public Task<JobDoneCommandResult> DoJobAsync(TIn input, 
         int? maxNrOfRetries = null, 
         TimeSpan? minBackoff = null,
         TimeSpan? maxBackoff = null, 
@@ -55,13 +55,13 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, false, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return await _masterActor.Ask<JobDoneCommandResult>(command, currentTimeout); //Ожидает ответ JobDoneCommandResult от MasterActor.DoJobCommandHandler
+        return _masterActor.Ask<JobDoneCommandResult>(command, currentTimeout); //Ожидает ответ JobDoneCommandResult от MasterActor.DoJobCommandHandler
     }
 
-    public async Task<StopJobCommandResult> StopJobAsync(string jobId, TimeSpan? timeout = null)
+    public Task<StopJobCommandResult> StopJobAsync(string jobId, TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
-        return await _masterActor.Ask<StopJobCommandResult>( 
+        return _masterActor.Ask<StopJobCommandResult>( 
             new StopJobCommand(jobId, GetGroupName()), currentTimeout); //Ожидает ответ StopJobCommandResult от MasterActor.StopJobCommandHandler
     }
 

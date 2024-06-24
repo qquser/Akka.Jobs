@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Job.Tests;
 
-public sealed class AkkaDiFixtureWithoutJob<TIn, TOut, TJob>  : IDisposable
+public sealed class AkkaDiFixtureWithoutJob<TIn, TOut, TJob> : IDisposable
     where TIn : IJobInput
     where TOut : IJobResult 
     where TJob : class, IJob<TIn, TOut>

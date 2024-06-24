@@ -1,19 +1,11 @@
 ﻿namespace Akka.Jobs.Models;
 
-public sealed class StopJobCommandResult
+public sealed class StopJobCommandResult(bool success, string result)
 {
-    public StopJobCommandResult(bool success, string result)
+    public StopJobCommandResult() : this(true, "")
     {
-        Success = success;
-        Result = result;
     }
     
-    public StopJobCommandResult()
-    {
-        Success = true;
-        Result = "";
-    }
-    
-    public bool Success { get; set; }
-    public string Result { get; set; }
+    public bool Success { get; set; } = success;
+    public string Result { get; set; } = result;
 }

@@ -2,16 +2,10 @@ using Akka.Jobs.Interfaces;
 
 namespace Job.Api.JobExamples.SimpleLoop;
 
-public class ForEachJob : IJob<ForEachJobInput, ForEachJobResult>, IDisposable
+public class ForEachJob(ILogger<ForEachJob> logger) : IJob<ForEachJobInput, ForEachJobResult>, IDisposable
 {
     private int _currentState;
 
-    private readonly ILogger<ForEachJob> _logger;
-    public ForEachJob(ILogger<ForEachJob> logger)
-    {
-        _logger = logger;
-    }
-    
     public async Task<bool> DoAsync(ForEachJobInput input, CancellationToken token)
     {
         foreach (var item in Enumerable.Range(0, input.Count))
@@ -19,7 +13,7 @@ public class ForEachJob : IJob<ForEachJobInput, ForEachJobResult>, IDisposable
             if (token.IsCancellationRequested)
                 return false;
             _currentState = item;
-            _logger.LogInformation(item.ToString());
+            logger.LogInformation(item.ToString());
             await Task.Delay(1000, token);
         }
 
@@ -37,6 +31,6 @@ public class ForEachJob : IJob<ForEachJobInput, ForEachJobResult>, IDisposable
 
     public void Dispose()
     {
-        _logger.LogInformation("Dispose.");
+        logger.LogInformation("Dispose.");
     }
 }

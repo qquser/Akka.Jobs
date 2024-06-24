@@ -10,26 +10,21 @@ using Xunit;
 
 namespace Job.Tests;
 
-public class MasterActorTests 
+public class MasterActorTests(
+    AkkaDiFixture<TestForEachJobInput, TestForEachJobResult, TestForEachJob> fixture,
+    AkkaDiFixtureWithoutJob<TestForEachJobInput, TestForEachJobResult, TestForEachJob> fixtureWithoutJob,
+    AkkaDiFixture<TestExceptionForEachJobInput, TestForEachJobResult, TestExceptionForEachJob>
+        fixtureExceptionForEachJob)
     : TestKit,
         IClassFixture<AkkaDiFixture<TestForEachJobInput, TestForEachJobResult, TestForEachJob>>,
         IClassFixture<AkkaDiFixtureWithoutJob<TestForEachJobInput, TestForEachJobResult, TestForEachJob>>,
         IClassFixture<AkkaDiFixture<TestExceptionForEachJobInput, TestForEachJobResult, TestExceptionForEachJob>>
 {
-    private readonly ActorSystem? _actorSystem;
-    private readonly ActorSystem? _actorSystemWithoutJob;
-    private readonly ActorSystem? _actorSystemExceptionJob;
+    private readonly ActorSystem? _actorSystem = fixture.Provider!.GetService<ActorSystem>();
+    private readonly ActorSystem? _actorSystemWithoutJob = fixtureWithoutJob.Provider!.GetService<ActorSystem>();
+    private readonly ActorSystem? _actorSystemExceptionJob = fixtureExceptionForEachJob.Provider!.GetService<ActorSystem>();
     private readonly string _testGroupName = "Test";
-    public MasterActorTests(
-        AkkaDiFixture<TestForEachJobInput, TestForEachJobResult, TestForEachJob> fixture,
-        AkkaDiFixtureWithoutJob<TestForEachJobInput, TestForEachJobResult, TestForEachJob> fixtureWithoutJob,
-        AkkaDiFixture<TestExceptionForEachJobInput, TestForEachJobResult, TestExceptionForEachJob> fixtureExceptionForEachJob)
-    {
-        _actorSystem = fixture.Provider!.GetService<ActorSystem>();
-        _actorSystemWithoutJob = fixtureWithoutJob.Provider!.GetService<ActorSystem>();
-        _actorSystemExceptionJob = fixtureExceptionForEachJob.Provider!.GetService<ActorSystem>();
-    }
-    
+
     private DoJobCommand<TestForEachJobInput> GetDoJobCommand(TestForEachJobInput input, string? jobId = null)
     {
         var id = jobId ?? Guid.NewGuid().ToString();

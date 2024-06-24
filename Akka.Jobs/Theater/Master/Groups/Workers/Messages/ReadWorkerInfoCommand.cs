@@ -1,15 +1,8 @@
 namespace Akka.Jobs.Theater.Master.Groups.Workers.Messages;
 
-internal sealed class ReadWorkerInfoCommand
+internal sealed class ReadWorkerInfoCommand(long requestId, string jobId, string groupId)
 {
-    public ReadWorkerInfoCommand(long requestId, string jobId, string groupId)
-    {
-        RequestId = requestId;
-        JobId = jobId;
-        GroupId = groupId;
-    }
-
-    public long RequestId { get; }
-    public string JobId { get; }
-    public string GroupId { get; }
+    public long RequestId { get; } = requestId;
+    public string JobId { get; } = jobId;
+    public string GroupId { get; } = groupId;
 }

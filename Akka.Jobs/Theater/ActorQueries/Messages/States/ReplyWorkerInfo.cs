@@ -2,22 +2,15 @@
 
 namespace Akka.Jobs.Theater.ActorQueries.Messages.States;
 
-public sealed class ReplyWorkerInfo<TOut> 
+public sealed class ReplyWorkerInfo<TOut>(bool success, string errorMessage)
     where TOut : IJobResult
 {
-    public ReplyWorkerInfo(TOut result)
+    public ReplyWorkerInfo(TOut result) : this(true, "")
     {
-        Success = true;
-        ErrorMessage = "";
         Result = result;
     }
-    public ReplyWorkerInfo(bool success, string errorMessage)
-    {
-        Success = success;
-        ErrorMessage = errorMessage;
-    }
-    
-    public string ErrorMessage { get; }
-    public bool Success { get; }
+
+    public string ErrorMessage { get; } = errorMessage;
+    public bool Success { get; } = success;
     public TOut? Result { get; }
 }

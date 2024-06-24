@@ -8,25 +8,18 @@ namespace Job.Api.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class ForEachJobController : ControllerBase
+public class ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult> jobContext) : ControllerBase
 {
-    private readonly IJobContext<ForEachJobInput, ForEachJobResult> _jobContext;
-    
-    public ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult> jobContext)
+    [HttpPost]
+    public Task<JobCreatedCommandResult> CreateJob([FromBody] ForEachJobInput input)
     {
-        _jobContext = jobContext;
+        return jobContext.CreateJobAsync(input);
     }
     
     [HttpPost]
-    public async Task<JobCreatedCommandResult> CreateJob([FromBody] ForEachJobInput input)
+    public Task<JobDoneCommandResult> DoJob([FromBody] ForEachJobInput input)
     {
-        return await _jobContext.CreateJobAsync(input);
-    }
-    
-    [HttpPost]
-    public async Task<JobDoneCommandResult> DoJob([FromBody] ForEachJobInput input)
-    {
-        return await _jobContext.DoJobAsync(input);
+        return jobContext.DoJobAsync(input);
     }
     
     [HttpPost]
@@ -34,20 +27,20 @@ public class ForEachJobController : ControllerBase
     {
         var list = Enumerable
             .Range(0, input)
-            .Select(x => _jobContext.CreateJobAsync(new ForEachJobInput { Count = x % 2 == 0 ? 4 : 2 }));
+            .Select(x => jobContext.CreateJobAsync(new ForEachJobInput { Count = x % 2 == 0 ? 4 : 2 }));
         await Task.WhenAll(list);
     }
     
     [HttpPost]
-    public async Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
+    public Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
     {
-        return await _jobContext.StopJobAsync(jobId.ToString());
+        return jobContext.StopJobAsync(jobId.ToString());
     }
     
     [HttpGet]
     public async Task<ICollection<ReplyWorkerInfo<ForEachJobResult>>> GetAllJobs([FromQuery] int requestId)
     {
-        var result = await _jobContext
+        var result = await jobContext
             .GetAllJobsCurrentStatesAsync(requestId, TimeSpan.FromMilliseconds(5000));
         return result.Values.ToList();
     }

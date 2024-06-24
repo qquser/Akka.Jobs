@@ -1,15 +1,8 @@
 ﻿namespace Akka.Jobs.Models;
 
-public sealed class JobCreatedCommandResult
+public sealed class JobCreatedCommandResult(bool success, string result, string jobId)
 {
-    public JobCreatedCommandResult(bool success, string result, string jobId)
-    {
-        Success = success;
-        Result = result;
-        JobId = jobId;
-    }
-    
-    public string JobId { get; set; }
-    public bool Success { get; set; }
-    public string Result { get; set; }
+    public string JobId { get; set; } = jobId;
+    public bool Success { get; set; } = success;
+    public string Result { get; set; } = result;
 }
