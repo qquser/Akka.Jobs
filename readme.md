@@ -1,8 +1,10 @@
+Job.Library
 
+Nuget - https://www.nuget.org/packages/Job.Library
 > dotnet add package Job.Library --version 2.0.0
 
 
-Job.Library
+
 
 ### How to use.
 
