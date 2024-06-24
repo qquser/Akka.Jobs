@@ -1,5 +1,8 @@
 
-Akka.NET Jobs.
+> dotnet add package Job.Library --version 2.0.0
+
+
+Job.Library
 
 ### How to use.
 
