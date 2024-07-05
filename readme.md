@@ -1,5 +1,10 @@
+Job.Library
 
-Akka.NET Jobs.
+Nuget - https://www.nuget.org/packages/Job.Library
+> dotnet add package Job.Library --version 2.0.0
+
+
+
 
 ### How to use.
 
