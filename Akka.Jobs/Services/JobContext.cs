@@ -63,8 +63,9 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     public Task<StopJobCommandResult> StopJobAsync(string jobId, TimeSpan? timeout = null)
     {
         var currentTimeout = timeout ?? _defaultTimeout;
+        //Waits StopJobCommandResult response from MasterActor.StopJobCommandHandler
         return _masterActor.Ask<StopJobCommandResult>( 
-            new StopJobCommand(jobId, GetGroupName()), currentTimeout); //Ожидает ответ StopJobCommandResult от MasterActor.StopJobCommandHandler
+            new StopJobCommand(jobId, GetGroupName()), currentTimeout);
     }
 
     public async Task<IDictionary<string, ReplyWorkerInfo<TOut>>> GetAllJobsCurrentStatesAsync(long requestId,
@@ -72,8 +73,9 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         var query = new RequestAllWorkersInfo(requestId, GetGroupName(), currentTimeout);
+        //Waits RespondAllWorkersInfo response from MasterActor.RequestAllWorkersInfoQueryHandler
         RespondAllWorkersInfo<TOut> info = await _masterActor
-            .Ask<RespondAllWorkersInfo<TOut>>(query, currentTimeout.Add(TimeSpan.FromSeconds(2))); //Ожидает ответ RespondAllWorkersInfo от MasterActor.RequestAllWorkersInfoQueryHandler
+            .Ask<RespondAllWorkersInfo<TOut>>(query, currentTimeout.Add(TimeSpan.FromSeconds(2)));
         return info.WorkersData;
     }
     
