@@ -43,7 +43,8 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, true, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return _masterActor.Ask<JobCreatedCommandResult>(command, currentTimeout); //Ожидает ответ JobCreatedCommandResult от MasterActor.DoJobCommandHandler
+        //Waits for JobCreatedCommandResult response from MasterActor.DoJobCommandHandler
+        return _masterActor.Ask<JobCreatedCommandResult>(command, currentTimeout); 
     }
 
     public Task<JobDoneCommandResult> DoJobAsync(TIn input, 
@@ -55,7 +56,8 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     {
         var currentTimeout = timeout ?? _defaultTimeout;
         var command = GetDoJobCommand(input, false, maxNrOfRetries, minBackoff, maxBackoff, jobId);
-        return _masterActor.Ask<JobDoneCommandResult>(command, currentTimeout); //Ожидает ответ JobDoneCommandResult от MasterActor.DoJobCommandHandler
+        //Waits for JobDoneCommandResult response from MasterActor.DoJobCommandHandler
+        return _masterActor.Ask<JobDoneCommandResult>(command, currentTimeout); 
     }
 
     public Task<StopJobCommandResult> StopJobAsync(string jobId, TimeSpan? timeout = null)
