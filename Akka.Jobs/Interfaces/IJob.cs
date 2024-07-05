@@ -11,9 +11,11 @@
 /// the IJobContext interface.
 /// </summary>
 /// <typeparam name="TIn"> Input Parameter Data: This type parameter represents the type of data that will be
-/// provided as input to the background task.</typeparam>
+/// provided as input to the background task.
+/// </typeparam>
 /// <typeparam name="TOut"> Current State Data: This type parameter represents the type of data that represents
-/// the current state of the task.</typeparam>
+/// the current state of the task.
+/// </typeparam>
 public interface IJob<in TIn, out TOut>
     where TIn : IJobInput
     where TOut : IJobResult 

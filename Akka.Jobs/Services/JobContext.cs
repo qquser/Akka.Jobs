@@ -15,7 +15,7 @@ internal class JobContext<TIn, TOut> : IJobContext<TIn, TOut>
     where TOut : IJobResult
 {
     /// <summary>
-    /// Здесь зарегистрирван MasterActor
+    /// MasterActor is registered here
     /// </summary>
     private readonly IActorRef _masterActor;
     
