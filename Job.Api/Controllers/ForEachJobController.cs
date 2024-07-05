@@ -13,13 +13,13 @@ public class ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult>
     [HttpPost]
     public Task<JobCreatedCommandResult> CreateJob([FromBody] ForEachJobInput input)
     {
-        return jobContext.CreateJobAsync(input);
+        return jobContext.CreateJobAsync(input); //Immediately returns the ID of a background task
     }
     
     [HttpPost]
     public Task<JobDoneCommandResult> DoJob([FromBody] ForEachJobInput input)
     {
-        return jobContext.DoJobAsync(input);
+        return jobContext.DoJobAsync(input); //Waiting for all the work to be completed
     }
     
     [HttpPost]

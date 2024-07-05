@@ -181,26 +181,43 @@ public interface IJobContext<in TIn, TOut>
 Controller
 
 ```csharp
-    private readonly IJobContext<ForEachJobInput, ForEachJobResult> _jobContext;
-    
-    public ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult> jobContext)
+[ApiController]
+[Route("[controller]/[action]")]
+public class ForEachJobController(IJobContext<ForEachJobInput, ForEachJobResult> jobContext) : ControllerBase
+{
+    [HttpPost]
+    public Task<JobCreatedCommandResult> CreateJob([FromBody] ForEachJobInput input)
     {
-        _jobContext = jobContext;
+        return jobContext.CreateJobAsync(input); //Immediately returns the ID of a background task
     }
     
     [HttpPost]
-    [Route(nameof(CreateJob))]
-    public Guid CreateJob([FromBody] ForEachJobInput input)
+    public Task<JobDoneCommandResult> DoJob([FromBody] ForEachJobInput input)
     {
-        return _jobContext.CreateJob(input); //Immediately returns the ID of a background task
+        return jobContext.DoJobAsync(input); //Waiting for all the work to be completed
+    }
+    
+    [HttpPost]
+    public async Task BatchJobs([FromQuery] int input)
+    {
+        var list = Enumerable
+            .Range(0, input)
+            .Select(x => jobContext.CreateJobAsync(new ForEachJobInput { Count = x % 2 == 0 ? 4 : 2 }));
+        await Task.WhenAll(list);
+    }
+    
+    [HttpPost]
+    public Task<StopJobCommandResult> StopJob([FromBody] Guid jobId)
+    {
+        return jobContext.StopJobAsync(jobId.ToString());
     }
     
     [HttpGet]
-    [Route(nameof(GetAllJobs))]
-    public async Task<ICollection<ForEachJobResult?>> GetAllJobs([FromQuery] int requestId)
+    public async Task<ICollection<ReplyWorkerInfo<ForEachJobResult>>> GetAllJobs([FromQuery] int requestId)
     {
-        var result = await _jobContext
-            .GetAllJobsCurrentStatesAsync(requestId);
-        return result.Values.Select(x => x.Result).ToList();
+        var result = await jobContext
+            .GetAllJobsCurrentStatesAsync(requestId, TimeSpan.FromMilliseconds(5000));
+        return result.Values.ToList();
     }
+}
 ````
